@@ -1,0 +1,1 @@
+This script will scan the current directory for folders and create a "todos" folder with a todo.txt file for each folder found. You can then use the CLI to add, remove, and mark todos as done along with other functionalities.
