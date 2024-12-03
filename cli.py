@@ -6,11 +6,12 @@ from rich.prompt import Prompt
 import time
 from yaspin import yaspin
 from InquirerPy.validator import PathValidator
+from InquirerPy.base.control import Choice
 
 import os
 
 from main import configure
-from utils import has_been_configured, clear_terminal, linebreak
+from utils import has_been_configured, clear_terminal, linebreak, get_configuration
 from constants import file_formats, themes, menu_options
 custom_syles = get_style(
     {
@@ -18,7 +19,7 @@ custom_syles = get_style(
         "answermark": "#e5c07b",
         "answer": "#61afef",
         "input": "#98c379",
-        "question": "",
+        "question": "#fff",
         "answered_question": "",
         "instruction": "#abb2bf",
         "long_instruction": "#abb2bf",
@@ -82,18 +83,18 @@ def set_configuration():
         instruction="(Default: vesper)",
     ).execute()
 
-    print("")
+    linebreak()
     console.print("[#e5c07b] Configurations summary:")
-    print("")
+    linebreak()
     console.print(f"- Projects location: [#61afef bold] {root_folder}")
     console.print(f"- TODOs folder name: [#61afef bold] {parent_folder_name}")
     console.print(f"- File format: [#61afef bold] {file_format}")
     console.print(f"- Theme: [#61afef bold] {theme}")
 
-    print(" ")
+    linebreak()
     confirm = inquirer.confirm(
         message="Save configuration?", default=True).execute()
-    print(" ")
+    linebreak()
 
     if confirm:
         config = {
@@ -102,7 +103,7 @@ def set_configuration():
 
         configure(config)
 
-        print(" ")
+        linebreak()
 
         main_menu_confirmation = inquirer.confirm(
             message="Proceed to main menu?", default=True).execute()
@@ -118,24 +119,142 @@ def set_configuration():
 def main_menu():
     clear_terminal()
 
-    print(" ")
+    linebreak()
     console.print("[red bold] Main menu")
-    print(" ")
+    linebreak()
 
     menu_option = inquirer.rawlist(
         message="Select an option",
         choices=menu_options,
         pointer=">",
         style=custom_syles,
+        default=0
     ).execute()
 
-    print(menu_option)
+    if menu_option == 2:
+        view_configuration()
 
-    # if menu_option == ':
-    #     clear_terminal()
-    #     console.print("[red bold] Exited todoscript :)")
-    #     linebreak()
-    #     return
+    if menu_option == 3:
+        update_configuration()
+
+    if menu_option == 5:
+        clear_terminal()
+        
+        linebreak()
+        console.print("[red bold] Exited todoscript")
+        linebreak()
+
+
+def view_configuration():
+    clear_terminal()
+
+    linebreak()
+    console.print("[red bold] View configurations")
+    linebreak()
+
+    data = get_configuration()
+
+    root_folder = data['root_folder']
+    parent_folder_name = data['parent_folder_name']
+    file_format = data['file_format']
+    theme = data['theme']
+
+    console.print(f"- Projects location: [#61afef bold] {root_folder}")
+    console.print(f"- TODOs folder name: [#61afef bold] {parent_folder_name}")
+    console.print(f"- File format: [#61afef bold] {file_format}")
+    console.print(f"- Theme: [#61afef bold] {theme}")
+
+    linebreak()
+
+    menu_options = [
+        Choice(name='Go back to main menu', value=0),
+        Choice(name='Update configuration', value=1)
+    ]
+
+    option = inquirer.rawlist(
+        message="Select option",
+        choices=menu_options,
+        default=0,
+        style=custom_syles,
+        pointer='>'
+    ).execute()
+
+    if option == 0:
+        main_menu()
+    else:
+        update_configuration()
+
+
+def update_configuration():
+    clear_terminal()
+
+    linebreak()
+    console.print("[red bold] Edit configurations")
+    linebreak()
+
+    data = get_configuration()
+
+    root_folder = data['root_folder']
+    parent_folder_name = data['parent_folder_name']
+    file_format = data['file_format']
+    theme = data['theme']
+
+    root_folder_input = inquirer.filepath(
+        message="Enter the root folder path: (leave blank for current directory)",
+        style=custom_syles,
+        default=root_folder,
+        validate=PathValidator(
+            is_dir=True, message='Input is not a valid folder')
+    ).execute()
+
+    file_format_input = inquirer.select(
+        message="Select the file format:",
+        choices=file_formats,
+        default=file_format,
+        pointer=">",
+        style=custom_syles,
+        validate=lambda result: len(result) > 0,
+        instruction="(Default: .txt)",
+        invalid_message="Please select a file format.",
+    ).execute()
+
+    theme_input = inquirer.select(
+        message="Select preferred theme:",
+        choices=themes,
+        pointer=">",
+        default=theme,
+        style=custom_syles,
+        instruction="(Default: vesper)",
+    ).execute()
+
+    linebreak()
+    console.print("[#e5c07b] Configurations summary:")
+    linebreak()
+    console.print(f"[red]-[bold white]Projects location: [#61afef bold] {root_folder_input}")
+    console.print(f"[red]-[bold white]File format: [#61afef bold] {file_format_input}")
+    console.print(f"[red]-[bold white]Theme: [#61afef bold] {theme_input}")
+
+    linebreak()
+    confirm = inquirer.confirm(
+        message="Save configuration?", default=True).execute()
+    linebreak()
+
+    if confirm:
+        config = {
+            'root_folder': root_folder_input, 'parent_folder_name': parent_folder_name, 'file_format': file_format_input, 'theme': theme_input
+        }
+
+        configure(config, is_editing=True)
+
+        main_menu_confirmation = inquirer.confirm(
+            message="Proceed to main menu?", default=True).execute()
+
+        if main_menu_confirmation:
+            main_menu()
+
+    else:
+        console.print(
+            "[red bold] Configuration not saved. Exiting the setup process.")
 
 
 def main():

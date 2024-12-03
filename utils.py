@@ -24,7 +24,17 @@ def is_configuration_present(configuration):
                 return True
 
 
-def linebreak(): return " "
+def linebreak(): return print(" ")
 
 
 def clear_terminal(): return os.system('cls||clear')
+
+
+def get_configuration():
+    if has_been_configured():
+        with open('config.json', 'r') as file:
+            data = json.load(file)
+
+            return data
+    else:
+        return None

@@ -9,7 +9,7 @@ root_directory = "./TODOS"
 folders = [f for f in os.listdir("../")]
 
 
-def configure(config):
+def configure(config, is_editing=False):
 
     root_folder = config['root_folder']
     parent_folder_name = config['parent_folder_name']
@@ -28,29 +28,28 @@ def configure(config):
                 with open(file_name, 'w') as f:
                     f.write(json_object)
 
-                time.sleep(2)
-                sp.write("✅ Configurations saved.")  
+                time.sleep(1)
+                sp.write("✅ Configurations saved.")
                 print(" ")
-            except(IOError, PermissionError) as e:
+            except (IOError, PermissionError) as e:
                 sp.write("❌ Failed to save configurations")
                 print(f"Error: {e}")
     except Exception as e:
         print(f"An unexpected error occured: {e}")
 
     # create todos folder
-
-    try:
-        with yaspin(text=f'Creating {parent_folder_name} folder...', color='light_magenta') as sp:
-            os.makedirs(parent_folder_name)
-            time.sleep(2)
-            sp.write(f"✅ {parent_folder_name} folder created.")  
-    except FileExistsError:
-        print(f"Folder {parent_folder_name} already exists:(")
-    except PermissionError:
-        print(f"Permission denied: Unable to create {parent_folder_name}")
-    except Exception as e:
-        print(f"An error occured: {e}")
-
+    if not is_editing:
+        try:
+            with yaspin(text=f'Creating {parent_folder_name} folder...', color='light_magenta') as sp:
+                os.makedirs(parent_folder_name)
+                time.sleep(2)
+                sp.write(f"✅ {parent_folder_name} folder created.")
+        except FileExistsError:
+            print(f"Folder {parent_folder_name} already exists:(")
+        except PermissionError:
+            print(f"Permission denied: Unable to create {parent_folder_name}")
+        except Exception as e:
+            print(f"An error occured: {e}")
 
 
 def create_folder_if_not_exists(folder):
