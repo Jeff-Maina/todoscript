@@ -335,10 +335,7 @@ def view_folder_tasks(folder, prev=''):
     completed = 0
     pending_tasks = 0
 
-    console.print(f"[white bold]All items - [blue bold]{all_items}")
-    console.print(f"[white bold]Completed tasks - [blue bold]{completed}")
-    console.print(f"[white bold]Pending tasks - [blue bold]{pending_tasks}")
-    linebreak()
+ 
 
     root_directory = get_configuration()['parent_folder_name']
 
@@ -351,6 +348,19 @@ def view_folder_tasks(folder, prev=''):
     backup_file = os.path.join(folder_path, 'todos.txt.tmp')
 
     if file.endswith("txt"):
+        with open(file_path, encoding='utf-8') as file:
+            for line in file:
+                line = line.rstrip("\n")
+                all_items += 1
+                if line[:3] == "[ ]":
+                    pending_tasks += 1
+                elif line[:3] == "[x]":
+                    completed += 1
+
+        # Display the counts at the top before tasks
+        console.print(f"[white bold]All items - [blue bold]{all_items}  [white bold]Completed tasks - [blue bold]{completed}  [white bold]Pending tasks - [blue bold]{pending_tasks}")
+        linebreak()
+
         with open(file_path, encoding='utf-8') as file:
             for index, line in enumerate(file, start=1):
                 line = line.rstrip("\n")
