@@ -7,6 +7,7 @@ import time
 from yaspin import yaspin
 from InquirerPy.validator import PathValidator
 from InquirerPy.base.control import Choice
+from InquirerPy.separator import Separator
 
 import os
 import mimetypes
@@ -174,6 +175,7 @@ def view_configuration():
     linebreak()
 
     menu_options = [
+        Separator(line=15 * "-"),
         Choice(name='Go back to main menu', value=0),
         Choice(name='Update configuration', value=1)
     ]
@@ -273,6 +275,7 @@ def generate_tasks():
     linebreak()
 
     menu_options = [
+        Separator(line=15 * "-"),
         Choice(name='View projects', value=0),
         Choice(name='Go back to main menu ', value=1),
         Choice(name='Exit ', value=2)
@@ -319,13 +322,22 @@ def view_projects():
     view_folder_tasks(option)
 
 
-def view_folder_tasks(folder):
+def view_folder_tasks(folder, prev=''):
     clear_terminal()
 
     last_index = 0
 
     linebreak()
     console.print(f"[red bold] {folder} tasks")
+    linebreak()
+
+    all_items = 0
+    completed = 0
+    pending_tasks = 0
+
+    console.print(f"[white bold]All items - [blue bold]{all_items}")
+    console.print(f"[white bold]Completed tasks - [blue bold]{completed}")
+    console.print(f"[white bold]Pending tasks - [blue bold]{pending_tasks}")
     linebreak()
 
     root_directory = get_configuration()['parent_folder_name']
@@ -342,14 +354,20 @@ def view_folder_tasks(folder):
         with open(file_path, encoding='utf-8') as file:
             for index, line in enumerate(file, start=1):
                 line = line.rstrip("\n")
+                all_items += 1
+                if line[:3] == "[ ]":
+                    pending_tasks += 1
                 console.print(f"{index}.{line}", markup=False)
 
     menu_options = [
+        Separator(line=15 * "-"),
         Choice(name='Add todo', value=0),
-        Choice(name='Delete todo', value=1),
-        Choice(name='Back to projects', value=2),
-        Choice(name='Main menu ', value=3),
-        Choice(name='Exit ', value=4)
+        Choice(name='Delete todos', value=1),
+        Choice(name='Mark todos as complete', value=2),
+        Separator(line=15 * "-"),
+        Choice(name='Back to projects', value=3),
+        Choice(name='Main menu ', value=4),
+        Choice(name='Exit ', value=5)
     ]
 
     linebreak()
@@ -364,6 +382,7 @@ def view_folder_tasks(folder):
 
     linebreak()
 
+    # add todo
     if option == 0:
         new_todo = inquirer.text(
             message='Enter task title',
@@ -393,6 +412,7 @@ def view_folder_tasks(folder):
 
         view_folder_tasks(folder)
 
+    # delete todos
     if option == 1:
 
         task_indices = inquirer.text(
@@ -406,13 +426,15 @@ def view_folder_tasks(folder):
                         for i in task_indices.split(",") if i.strip().isdigit()]
 
         try:
-            with open(file_path, 'r') as file, tempfile.NamedTemporaryFile("w", delete=False) as temp_file:
-                temp_file_name = temp_file.name
-                for index, line in enumerate(file):
-                    if index in task_indices:
-                        console.print(f'[orange] Deleted : [white] {line.split}')
-                    if index + 1 not in task_indices:
-                        temp_file.write(line)
+            with yaspin(text='Deleting task...', color="light_magenta") as sp:
+                with open(file_path, 'r') as file, tempfile.NamedTemporaryFile("w", delete=False) as temp_file:
+                    temp_file_name = temp_file.name
+                    for index, line in enumerate(file):
+                        time.sleep(0.2)
+                        if index + 1 not in task_indices:
+                            temp_file.write(line)
+                        if index + 1 in task_indices:
+                            sp.write(f'Deleted {line[3:]}')
 
             os.replace(temp_file_name, file_path)
 
@@ -420,10 +442,39 @@ def view_folder_tasks(folder):
             if 'temp_file_name' in locals():
                 os.unlink(temp_file_name)
             print(f"An error occured: {e}")
+        view_folder_tasks(folder, prev='delete')
 
-        view_folder_tasks(folder)
-
+    # mark todo complete
     if option == 2:
+        indices = inquirer.text(
+            message='Enter index (0 to cancel)',
+            instruction='use comma-separated list to delete multiple items',
+            style=custom_syles,
+
+        ).execute()
+
+        selected_indices = [int(i.strip())
+                            for i in indices.split(",") if i.strip().isdigit()]
+
+        try:
+            with yaspin(text='Marking task complete...', color='light_magenta') as sp:
+                with open(file_path, 'r') as file, tempfile.NamedTemporaryFile("w", delete=False) as temp_file:
+                    temp_file_name = temp_file.name
+                    for index, line in enumerate(file):
+                        time.sleep(0.2)
+                        if index + 1 in selected_indices:
+                            temp_file.write(f"[x] {line[3:]}\n")
+                        else:
+                            temp_file.write(line+"\n")
+
+                os.replace(temp_file_name, file_path)
+        except Exception as e:
+            if 'temp_file_name' in locals():
+                os.unlink(temp_file_name)
+            print(f"An error occured: {e}")
+        view_folder_tasks(folder, prev='mark complete')
+
+    if option == 3:
         view_projects()
 
     if option == 3:

@@ -1,4 +1,5 @@
 from InquirerPy.base.control import Choice
+from InquirerPy.separator import Separator
 
 file_formats = [{
     "name": "Markdown (.md)",
@@ -30,6 +31,7 @@ themes = [{
 
 
 menu_options = [
+    Separator(line=15 * "-"),
     Choice(name="Generate TODOs for projects", value=0),
     Choice(name="View projects", value=1),
     Choice(name="View current configuration", value=2),
