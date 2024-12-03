@@ -3,9 +3,14 @@ import pathlib
 import json
 import time
 from yaspin import yaspin
+from utils import get_configuration, linebreak
+
+config = get_configuration()
 
 
-root_directory = "./TODOS"
+root_directory = config['root_folder']
+parent_folder = config['parent_folder_name']
+file_format = config['file_format']
 folders = [f for f in os.listdir("../")]
 
 
@@ -53,28 +58,27 @@ def configure(config, is_editing=False):
 
 
 def create_folder_if_not_exists(folder):
-
     if not os.path.exists(folder):
-        folder_path = os.path.join(root_directory, folder)
-        os.makedirs(folder_path)
-        print(f"🔵 Successfully created {folder} todos.txt file")
+        folder_path = os.path.join(parent_folder, folder)
+        with yaspin(text=f'Creating {folder}...', color='light_magenta') as sp:
+            time.sleep(0.2)
+            os.makedirs(folder_path)
+            sp.write(f"🔵 Successfully created {folder} folder")
 
-        file_name = 'todos.txt'
-        file_path = os.path.join(root_directory, folder, file_name)
+        file_name = f'todos.{file_format}'
+        file_path = os.path.join(parent_folder, folder, file_name)
 
-        with open(file_path, 'w') as f:
-            f.write(f'#{folder} todos')
-
-        print(f"⚪ Successfully created {folder} todos.txt file")
-
-        print("___________________________________________________")
-        print(" ")
-
+        with yaspin(text=f"Creating todo.{file_format}...", color="light_magenta")as sp:
+            with open(file_path, 'w') as f:
+                time.sleep(0.2)
+                f.write(f'#{folder} todos')
+                sp.write(f"⚪ Successfully created {folder} todos.{file_format} file")
     else:
         pass
 
 
-def create_folders():
+def create_tasks():
+    linebreak()
     for folder in folders:
         try:
             create_folder_if_not_exists(folder)
@@ -84,3 +88,13 @@ def create_folders():
             print(f"Permission denied: Unable to create '{folder}'")
         except Exception as e:
             print(f"An error occured: {e}")
+
+
+def get_folders():
+    data = []
+    for folder in folders:
+        data.append(folder)
+
+    return data
+
+

@@ -10,7 +10,7 @@ from InquirerPy.base.control import Choice
 
 import os
 
-from main import configure
+from main import configure, create_tasks, get_folders
 from utils import has_been_configured, clear_terminal, linebreak, get_configuration
 from constants import file_formats, themes, menu_options
 custom_syles = get_style(
@@ -131,6 +131,12 @@ def main_menu():
         default=0
     ).execute()
 
+    if menu_option == 0:
+        generate_tasks()
+
+    if menu_option == 1:
+        view_tasks()
+
     if menu_option == 2:
         view_configuration()
 
@@ -139,7 +145,7 @@ def main_menu():
 
     if menu_option == 5:
         clear_terminal()
-        
+
         linebreak()
         console.print("[red bold] Exited todoscript")
         linebreak()
@@ -230,8 +236,10 @@ def update_configuration():
     linebreak()
     console.print("[#e5c07b] Configurations summary:")
     linebreak()
-    console.print(f"[red]-[bold white]Projects location: [#61afef bold] {root_folder_input}")
-    console.print(f"[red]-[bold white]File format: [#61afef bold] {file_format_input}")
+    console.print(
+        f"[red]-[bold white]Projects location: [#61afef bold] {root_folder_input}")
+    console.print(
+        f"[red]-[bold white]File format: [#61afef bold] {file_format_input}")
     console.print(f"[red]-[bold white]Theme: [#61afef bold] {theme_input}")
 
     linebreak()
@@ -255,6 +263,62 @@ def update_configuration():
     else:
         console.print(
             "[red bold] Configuration not saved. Exiting the setup process.")
+
+
+def generate_tasks():
+    create_tasks()
+    linebreak()
+    console.print('[bold white] process completed')
+    linebreak()
+
+    option = inquirer.rawlist(
+        message="Select option",
+        choices=menu_options,
+        default=0,
+        style=custom_syles,
+        pointer='>'
+    ).execute()
+
+    menu_options = [
+        Choice(name='View tasks', value=0),
+        Choice(name='Go back to main menu ', value=1),
+        Choice(name='Exit ', value=2)
+    ]
+
+    if option == 0:
+        view_tasks()
+
+    if option == 1:
+        main_menu()
+
+    if option == 2:
+        clear_terminal()
+
+        linebreak()
+        console.print("[red bold] Exited todoscript")
+        linebreak()
+
+
+def view_tasks():
+    clear_terminal()
+
+    linebreak()
+    console.print("[red bold] Select Folder")
+    linebreak()
+
+    folders = get_folders()
+
+    option = inquirer.fuzzy(
+        message='Select a folder to view its tasks',
+        choices=folders,
+        default=0,
+        style=custom_syles,
+        pointer='>'
+    ).execute()
+
+
+
+
 
 
 def main():

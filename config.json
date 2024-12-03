@@ -1,6 +1,6 @@
 {
     "root_folder": "/home/jeff/Desktop/LAB",
     "parent_folder_name": "TODOs",
-    "file_format": "txt",
+    "file_format": "csv",
     "theme": "dracula"
 }
