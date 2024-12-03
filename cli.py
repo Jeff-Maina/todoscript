@@ -10,6 +10,7 @@ from InquirerPy.base.control import Choice
 
 import os
 import mimetypes
+import tempfile
 
 from main import configure, create_tasks, get_folders
 from utils import has_been_configured, clear_terminal, linebreak, get_configuration
@@ -306,7 +307,7 @@ def view_projects():
 
     folder_path = os.path.join(config['parent_folder_name'])
     folders = os.listdir(folder_path)
-   
+
     option = inquirer.fuzzy(
         message='Select a folder to view its tasks',
         choices=folders,
@@ -335,12 +336,13 @@ def view_folder_tasks(folder):
         os.path.join(folder_path, f))][0]
 
     file_path = os.path.join(folder_path, file)
+    backup_file = os.path.join(folder_path, 'todos.txt.tmp')
 
     if file.endswith("txt"):
         with open(file_path, encoding='utf-8') as file:
-            for last_index, line in enumerate(file):
+            for index, line in enumerate(file, start=1):
                 line = line.rstrip("\n")
-                console.print(line, markup=False)
+                console.print(f"{index}.{line}", markup=False)
 
     menu_options = [
         Choice(name='Add todo', value=0),
@@ -360,6 +362,8 @@ def view_folder_tasks(folder):
         pointer='>'
     ).execute()
 
+    linebreak()
+
     if option == 0:
         new_todo = inquirer.text(
             message='Enter task title',
@@ -371,8 +375,8 @@ def view_folder_tasks(folder):
             style=custom_syles,
             default="Incomplete",
             choices=[
+                Choice(name='Complete', value='Complete'),
                 Choice(name='Incomplete', value='Incomplete'),
-                Choice(name='Complete', value='Complete')
             ]
         ).execute()
 
@@ -382,10 +386,42 @@ def view_folder_tasks(folder):
             with yaspin(text='Creating task...', color='light_magenta') as sp:
                 time.sleep(0.2)
                 with open(file_path, 'a') as file:
-                    file.write(f'{last_index + 1}. {status} {new_todo}')
+                    file.write(f'{status} {new_todo}\n')
                 sp.write("Task added successfully")
         except Exception as e:
             print(e)
+
+        view_folder_tasks(folder)
+
+    if option == 1:
+
+        task_indices = inquirer.text(
+            message='Enter index (0 to cancel)',
+            instruction='use comma-separated list to delete multiple items',
+            style=custom_syles,
+
+        ).execute()
+
+        task_indices = [int(i.strip())
+                        for i in task_indices.split(",") if i.strip().isdigit()]
+
+        try:
+            with open(file_path, 'r') as file, tempfile.NamedTemporaryFile("w", delete=False) as temp_file:
+                temp_file_name = temp_file.name
+                for index, line in enumerate(file):
+                    if index in task_indices:
+                        console.print(f'[orange] Deleted : [white] {line.split}')
+                    if index + 1 not in task_indices:
+                        temp_file.write(line)
+
+            os.replace(temp_file_name, file_path)
+
+        except Exception as e:
+            if 'temp_file_name' in locals():
+                os.unlink(temp_file_name)
+            print(f"An error occured: {e}")
+
+        view_folder_tasks(folder)
 
     if option == 2:
         view_projects()
