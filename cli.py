@@ -10,8 +10,8 @@ from InquirerPy.validator import PathValidator
 import os
 
 from main import configure
-from utils import has_been_configured,clear_terminal
-
+from utils import has_been_configured, clear_terminal, linebreak
+from constants import file_formats, themes, menu_options
 custom_syles = get_style(
     {
         "questionmark": "#EB5B00 bold",
@@ -38,33 +38,7 @@ custom_syles = get_style(
 
 console = Console()
 
-file_formats = [{
-    "name": "Markdown (.md)",
-    "value": "md"
-}, {
-    "name": "JSON (.json)",
-    "value": "json"
-}, {
-    "name": "CSV (.csv)",
-    "value": "csv"
-}, {
-    "name": "YAML (.yaml)",
-    "value": "yaml"
-}, {
-    "name": "Plain Text (.txt)",
-    "value": "txt"
-}]
-
-themes = [{
-    "name": "Vesper",
-    "value": "vesper"
-}, {
-    "name": "Dracula",
-    "value": "dracula"
-}, {
-    "name": "Monokai",
-    "value": "monokai"
-}]
+# DATA
 
 
 def set_configuration():
@@ -145,18 +119,23 @@ def main_menu():
     clear_terminal()
 
     print(" ")
-    console.print("[red bold] main menu")
+    console.print("[red bold] Main menu")
     print(" ")
-    file_format = inquirer.select(
-            message="Select the file format:",
-            choices=file_formats,
-            default='txt',
-            pointer=">",
-            style=custom_syles,
-            validate=lambda result: len(result) > 0,
-            instruction="(Default: .txt)",
-            invalid_message="Please select a file format.",
-        ).execute()
+
+    menu_option = inquirer.rawlist(
+        message="Select an option",
+        choices=menu_options,
+        pointer=">",
+        style=custom_syles,
+    ).execute()
+
+    print(menu_option)
+
+    # if menu_option == ':
+    #     clear_terminal()
+    #     console.print("[red bold] Exited todoscript :)")
+    #     linebreak()
+    #     return
 
 
 def main():

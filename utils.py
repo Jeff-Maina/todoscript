@@ -24,4 +24,7 @@ def is_configuration_present(configuration):
                 return True
 
 
-clear_terminal = lambda: os.system('cls||clear')
+def linebreak(): return " "
+
+
+def clear_terminal(): return os.system('cls||clear')
