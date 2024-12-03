@@ -9,6 +9,7 @@ from InquirerPy.validator import PathValidator
 from InquirerPy.base.control import Choice
 
 import os
+import mimetypes
 
 from main import configure, create_tasks, get_folders
 from utils import has_been_configured, clear_terminal, linebreak, get_configuration
@@ -39,6 +40,7 @@ custom_syles = get_style(
 
 console = Console()
 
+config = get_configuration()
 # DATA
 
 
@@ -135,7 +137,7 @@ def main_menu():
         generate_tasks()
 
     if menu_option == 1:
-        view_tasks()
+        view_projects()
 
     if menu_option == 2:
         view_configuration()
@@ -146,9 +148,7 @@ def main_menu():
     if menu_option == 5:
         clear_terminal()
 
-        linebreak()
-        console.print("[red bold] Exited todoscript")
-        linebreak()
+        exit_app()
 
 
 def view_configuration():
@@ -271,6 +271,12 @@ def generate_tasks():
     console.print('[bold white] process completed')
     linebreak()
 
+    menu_options = [
+        Choice(name='View projects', value=0),
+        Choice(name='Go back to main menu ', value=1),
+        Choice(name='Exit ', value=2)
+    ]
+
     option = inquirer.rawlist(
         message="Select option",
         choices=menu_options,
@@ -279,14 +285,8 @@ def generate_tasks():
         pointer='>'
     ).execute()
 
-    menu_options = [
-        Choice(name='View tasks', value=0),
-        Choice(name='Go back to main menu ', value=1),
-        Choice(name='Exit ', value=2)
-    ]
-
     if option == 0:
-        view_tasks()
+        view_projects()
 
     if option == 1:
         main_menu()
@@ -294,20 +294,19 @@ def generate_tasks():
     if option == 2:
         clear_terminal()
 
-        linebreak()
-        console.print("[red bold] Exited todoscript")
-        linebreak()
+        exit_app()
 
 
-def view_tasks():
+def view_projects():
     clear_terminal()
 
     linebreak()
     console.print("[red bold] Select Folder")
     linebreak()
 
-    folders = get_folders()
-
+    folder_path = os.path.join(config['parent_folder_name'])
+    folders = os.listdir(folder_path)
+   
     option = inquirer.fuzzy(
         message='Select a folder to view its tasks',
         choices=folders,
@@ -316,9 +315,93 @@ def view_tasks():
         pointer='>'
     ).execute()
 
+    view_folder_tasks(option)
 
 
+def view_folder_tasks(folder):
+    clear_terminal()
 
+    last_index = 0
+
+    linebreak()
+    console.print(f"[red bold] {folder} tasks")
+    linebreak()
+
+    root_directory = get_configuration()['parent_folder_name']
+
+    folder_path = os.path.join(root_directory, folder)
+
+    file = [f for f in os.listdir(folder_path) if os.path.isfile(
+        os.path.join(folder_path, f))][0]
+
+    file_path = os.path.join(folder_path, file)
+
+    if file.endswith("txt"):
+        with open(file_path, encoding='utf-8') as file:
+            for last_index, line in enumerate(file):
+                line = line.rstrip("\n")
+                console.print(line, markup=False)
+
+    menu_options = [
+        Choice(name='Add todo', value=0),
+        Choice(name='Delete todo', value=1),
+        Choice(name='Back to projects', value=2),
+        Choice(name='Main menu ', value=3),
+        Choice(name='Exit ', value=4)
+    ]
+
+    linebreak()
+
+    option = inquirer.select(
+        message='Select option',
+        choices=menu_options,
+        default=0,
+        style=custom_syles,
+        pointer='>'
+    ).execute()
+
+    if option == 0:
+        new_todo = inquirer.text(
+            message='Enter task title',
+            style=custom_syles
+        ).execute()
+
+        todo_status = inquirer.select(
+            message='Select task status',
+            style=custom_syles,
+            default="Incomplete",
+            choices=[
+                Choice(name='Incomplete', value='Incomplete'),
+                Choice(name='Complete', value='Complete')
+            ]
+        ).execute()
+
+        status = '[ ]' if todo_status == 'Incomplete' else '[x]'
+
+        try:
+            with yaspin(text='Creating task...', color='light_magenta') as sp:
+                time.sleep(0.2)
+                with open(file_path, 'a') as file:
+                    file.write(f'{last_index + 1}. {status} {new_todo}')
+                sp.write("Task added successfully")
+        except Exception as e:
+            print(e)
+
+    if option == 2:
+        view_projects()
+
+    if option == 3:
+        main_menu()
+
+    if option == 4:
+        exit_app()
+
+
+def exit_app():
+    clear_terminal()
+    linebreak()
+    console.print("[red bold] Exited todoscript")
+    linebreak()
 
 
 def main():

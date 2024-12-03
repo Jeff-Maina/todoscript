@@ -11,7 +11,7 @@ config = get_configuration()
 root_directory = config['root_folder']
 parent_folder = config['parent_folder_name']
 file_format = config['file_format']
-folders = [f for f in os.listdir("../")]
+folders = [f for f in os.listdir(root_directory)]
 
 
 def configure(config, is_editing=False):
@@ -71,7 +71,6 @@ def create_folder_if_not_exists(folder):
         with yaspin(text=f"Creating todo.{file_format}...", color="light_magenta")as sp:
             with open(file_path, 'w') as f:
                 time.sleep(0.2)
-                f.write(f'#{folder} todos')
                 sp.write(f"⚪ Successfully created {folder} todos.{file_format} file")
     else:
         pass

@@ -31,7 +31,7 @@ themes = [{
 
 menu_options = [
     Choice(name="Generate TODOs for projects", value=0),
-    Choice(name="View / Edit Generated TODOs", value=1),
+    Choice(name="View projects", value=1),
     Choice(name="View current configuration", value=2),
     Choice(name="Update configuration", value=3),
     Choice(name="View Reports", value=4),
