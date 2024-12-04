@@ -3,6 +3,8 @@ from InquirerPy.validator import NumberValidator
 from rich.table import Table
 from rich.console import Console
 from rich.prompt import Prompt
+from rich.text import Text
+
 import time
 from yaspin import yaspin
 from InquirerPy.validator import PathValidator
@@ -335,8 +337,6 @@ def view_folder_tasks(folder, prev=''):
     completed = 0
     pending_tasks = 0
 
- 
-
     root_directory = get_configuration()['parent_folder_name']
 
     folder_path = os.path.join(root_directory, folder)
@@ -345,7 +345,6 @@ def view_folder_tasks(folder, prev=''):
         os.path.join(folder_path, f))][0]
 
     file_path = os.path.join(folder_path, file)
-    backup_file = os.path.join(folder_path, 'todos.txt.tmp')
 
     if file.endswith("txt"):
         with open(file_path, encoding='utf-8') as file:
@@ -357,27 +356,41 @@ def view_folder_tasks(folder, prev=''):
                 elif line[:3] == "[x]":
                     completed += 1
 
+        percentage_done = round(completed/all_items * 100)
+        total_bars = int(percentage_done/100 * 10)
+        bars = "█" * total_bars
+        strokes = "-" * (10-total_bars)
+        
+        progress_bar = f'Progress: [white bold] [{bars}{strokes}] [/white bold] {percentage_done}% Complete ({completed}/{all_items})'
         # Display the counts at the top before tasks
-        console.print(f"[white bold]All items - [blue bold]{all_items}  [white bold]Completed tasks - [blue bold]{completed}  [white bold]Pending tasks - [blue bold]{pending_tasks}")
+        console.print(progress_bar)
         linebreak()
 
         with open(file_path, encoding='utf-8') as file:
             for index, line in enumerate(file, start=1):
                 line = line.rstrip("\n")
-                all_items += 1
-                if line[:3] == "[ ]":
-                    pending_tasks += 1
-                console.print(f"{index}.{line}", markup=False)
+                styled_line = Text(f"{index}.{line}") if index > 9 else Text(
+                    f"{index}. {line}")
+
+                task_start_point = 4 if index > 9 else 5
+
+                style = "bold green" if line[:3] == '[x]' else "bold"
+
+                styled_line.stylize(style, len(
+                    str(index)) + 0, len(styled_line))
+
+                console.print(styled_line, markup=False)
 
     menu_options = [
         Separator(line=15 * "-"),
         Choice(name='Add todo', value=0),
         Choice(name='Delete todos', value=1),
         Choice(name='Mark todos as complete', value=2),
+        Choice(name='Enter edit mode', value=3),
         Separator(line=15 * "-"),
-        Choice(name='Back to projects', value=3),
-        Choice(name='Main menu ', value=4),
-        Choice(name='Exit ', value=5)
+        Choice(name='Back to projects', value=4),
+        Choice(name='Main menu ', value=5),
+        Choice(name='Exit ', value=6)
     ]
 
     linebreak()
@@ -391,7 +404,6 @@ def view_folder_tasks(folder, prev=''):
     ).execute()
 
     linebreak()
-
     # add todo
     if option == 0:
         new_todo = inquirer.text(
@@ -471,11 +483,10 @@ def view_folder_tasks(folder, prev=''):
                 with open(file_path, 'r') as file, tempfile.NamedTemporaryFile("w", delete=False) as temp_file:
                     temp_file_name = temp_file.name
                     for index, line in enumerate(file):
-                        time.sleep(0.2)
                         if index + 1 in selected_indices:
-                            temp_file.write(f"[x] {line[3:]}\n")
+                            temp_file.write(f"[x]{line[3:]}")
                         else:
-                            temp_file.write(line+"\n")
+                            temp_file.write(f'{line}')
 
                 os.replace(temp_file_name, file_path)
         except Exception as e:
@@ -485,13 +496,38 @@ def view_folder_tasks(folder, prev=''):
         view_folder_tasks(folder, prev='mark complete')
 
     if option == 3:
-        view_projects()
+        edit_mode(folder)
 
-    if option == 3:
-        main_menu()
-
+    # back to projects
     if option == 4:
+        view_projects()
+    # main menu
+    if option == 5:
+        main_menu()
+    # exit
+    if option == 6:
         exit_app()
+
+
+def edit_mode(folder):
+    clear_terminal()
+
+    linebreak()
+    console.print(f"[red bold] Edit mode")
+    linebreak()
+
+    menu_options = {
+        Separator(line=15*"-"),
+        Choice(name="Back to read mode", value=0)
+    }
+
+    option = inquirer.select(
+        message='Select option',
+        choices=menu_options,
+        default=0,
+        style=custom_syles,
+        pointer='>'
+    ).execute()
 
 
 def exit_app():
