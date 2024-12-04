@@ -1,9 +1,10 @@
 from InquirerPy import inquirer, prompt, get_style
-from InquirerPy.validator import NumberValidator
+from InquirerPy.validator import NumberValidator, EmptyInputValidator
 from rich.table import Table
 from rich.console import Console
 from rich.prompt import Prompt
 from rich.text import Text
+from InquirerPy.prompts.expand import ExpandChoice
 
 import time
 from yaspin import yaspin
@@ -337,6 +338,8 @@ def view_folder_tasks(folder, prev=''):
     completed = 0
     pending_tasks = 0
 
+    task_list = []
+
     root_directory = get_configuration()['parent_folder_name']
 
     folder_path = os.path.join(root_directory, folder)
@@ -360,7 +363,7 @@ def view_folder_tasks(folder, prev=''):
         total_bars = int(percentage_done/100 * 10)
         bars = "█" * total_bars
         strokes = "-" * (10-total_bars)
-        
+
         progress_bar = f'Progress: [white bold] [{bars}{strokes}] [/white bold] {percentage_done}% Complete ({completed}/{all_items})'
         # Display the counts at the top before tasks
         console.print(progress_bar)
@@ -368,11 +371,13 @@ def view_folder_tasks(folder, prev=''):
 
         with open(file_path, encoding='utf-8') as file:
             for index, line in enumerate(file, start=1):
+
+                last_index += 1
                 line = line.rstrip("\n")
+
+                task_list.append(f"{line[3:].strip()}")
                 styled_line = Text(f"{index}.{line}") if index > 9 else Text(
                     f"{index}. {line}")
-
-                task_start_point = 4 if index > 9 else 5
 
                 style = "bold green" if line[:3] == '[x]' else "bold"
 
@@ -386,7 +391,7 @@ def view_folder_tasks(folder, prev=''):
         Choice(name='Add todo', value=0),
         Choice(name='Delete todos', value=1),
         Choice(name='Mark todos as complete', value=2),
-        Choice(name='Enter edit mode', value=3),
+        Choice(name='Edit task', value=3),
         Separator(line=15 * "-"),
         Choice(name='Back to projects', value=4),
         Choice(name='Main menu ', value=5),
@@ -496,7 +501,48 @@ def view_folder_tasks(folder, prev=''):
         view_folder_tasks(folder, prev='mark complete')
 
     if option == 3:
-        edit_mode(folder)
+
+        task_index = inquirer.number(
+            message="Enter task index",
+            min_allowed=1,
+            max_allowed=last_index,
+            validate=EmptyInputValidator(),
+            style=custom_syles
+        ).execute()
+
+        selected_task = task_list[int(task_index) - 1]
+
+        edit_task = inquirer.text(
+            message='Edit task',
+            style=custom_syles,
+            default=selected_task
+        ).execute()
+
+        confirm_edit = inquirer.confirm(
+            message='Save changes',
+            default=True,
+            style=custom_syles
+        ).execute()
+
+        if confirm_edit:
+            try:
+                with open(file_path, 'r') as edit_file, tempfile.NamedTemporaryFile('w', delete=False) as edit_temp_file:
+                    edit_temp_name = edit_temp_file.name
+                    for index, line in enumerate(edit_file):
+                        line = line.rstrip("\n")
+                        if index == (int(task_index) - 1):
+                            edit_temp_file.write(f"{line[:3]} {edit_task}\n")
+                        else:
+                            edit_temp_file.write(f"{line}\n")
+
+                os.replace(edit_temp_name, file_path)
+            except Exception as e:
+                if 'edit_temp_name' in locals():
+                    os.unlink(edit_temp_name)
+                print(f"An error occured: {e}")
+            view_folder_tasks(folder)
+        else:
+            view_folder_tasks(folder)
 
     # back to projects
     if option == 4:
@@ -507,27 +553,6 @@ def view_folder_tasks(folder, prev=''):
     # exit
     if option == 6:
         exit_app()
-
-
-def edit_mode(folder):
-    clear_terminal()
-
-    linebreak()
-    console.print(f"[red bold] Edit mode")
-    linebreak()
-
-    menu_options = {
-        Separator(line=15*"-"),
-        Choice(name="Back to read mode", value=0)
-    }
-
-    option = inquirer.select(
-        message='Select option',
-        choices=menu_options,
-        default=0,
-        style=custom_syles,
-        pointer='>'
-    ).execute()
 
 
 def exit_app():
