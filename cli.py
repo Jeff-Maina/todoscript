@@ -388,9 +388,10 @@ def view_folder_tasks(folder, prev=''):
 
     menu_options = [
         Separator(line=15 * "-"),
-        Choice(name='Add todo', value=0),
-        Choice(name='Delete todos', value=1),
-        Choice(name='Mark todos as complete', value=2),
+        Choice(name='Add task', value=0),
+        Choice(name='Delete tasks', value=1),
+        Choice(name='Mark tasks complete', value=2),
+        Choice(name='Mark tasks incomplete', value=7),
         Choice(name='Edit task', value=3),
         Separator(line=15 * "-"),
         Choice(name='Back to projects', value=4),
@@ -399,6 +400,36 @@ def view_folder_tasks(folder, prev=''):
     ]
 
     linebreak()
+
+    def change_status(status):
+        indices = inquirer.text(
+            message='Enter index (0 to cancel)',
+            instruction='use comma-separated list to delete multiple items',
+            style=custom_syles,
+
+        ).execute()
+
+        task_status = "[x]" if status == 'complete' else "[ ]"
+
+        selected_indices = [int(i.strip())
+                            for i in indices.split(",") if i.strip().isdigit()]
+
+        try:
+            with open(file_path, 'r') as file, tempfile.NamedTemporaryFile("w", delete=False) as temp_file:
+                temp_file_name = temp_file.name
+                for index, line in enumerate(file):
+
+                    if index + 1 in selected_indices:
+                        temp_file.write(f"{task_status}{line[3:]}")
+                    else:
+                        temp_file.write(f'{line}')
+
+            os.replace(temp_file_name, file_path)
+        except Exception as e:
+            if 'temp_file_name' in locals():
+                os.unlink(temp_file_name)
+            print(f"An error occured: {e}")
+        view_folder_tasks(folder, prev='mark complete')
 
     option = inquirer.select(
         message='Select option',
@@ -473,33 +504,9 @@ def view_folder_tasks(folder, prev=''):
 
     # mark todo complete
     if option == 2:
-        indices = inquirer.text(
-            message='Enter index (0 to cancel)',
-            instruction='use comma-separated list to delete multiple items',
-            style=custom_syles,
-
-        ).execute()
-
-        selected_indices = [int(i.strip())
-                            for i in indices.split(",") if i.strip().isdigit()]
-
-        try:
-            with yaspin(text='Marking task complete...', color='light_magenta') as sp:
-                with open(file_path, 'r') as file, tempfile.NamedTemporaryFile("w", delete=False) as temp_file:
-                    temp_file_name = temp_file.name
-                    for index, line in enumerate(file):
-                        if index + 1 in selected_indices:
-                            temp_file.write(f"[x]{line[3:]}")
-                        else:
-                            temp_file.write(f'{line}')
-
-                os.replace(temp_file_name, file_path)
-        except Exception as e:
-            if 'temp_file_name' in locals():
-                os.unlink(temp_file_name)
-            print(f"An error occured: {e}")
-        view_folder_tasks(folder, prev='mark complete')
-
+        change_status("complete")
+    if option == 7:
+        change_status("incomplete")
     if option == 3:
 
         task_index = inquirer.number(
