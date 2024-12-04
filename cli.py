@@ -359,8 +359,8 @@ def view_folder_tasks(folder, prev=''):
                 elif line[:3] == "[x]":
                     completed += 1
 
-        percentage_done = round(completed/all_items * 100)
-        total_bars = int(percentage_done/100 * 10)
+        percentage_done = round(completed/all_items * 100) if all_items > 0 else 0
+        total_bars = int(percentage_done/100 * 10) if all_items > 0 else 0
         bars = "█" * total_bars
         strokes = "-" * (10-total_bars)
 
@@ -376,24 +376,28 @@ def view_folder_tasks(folder, prev=''):
                 line = line.rstrip("\n")
 
                 task_list.append(f"{line[3:].strip()}")
-                styled_line = Text(f"{index}.{line}") if index > 9 else Text(
-                    f"{index}. {line}")
+                styled_line = Text(f"{index}. {line}") if index > 9 else Text(
+                    f"{index}.  {line}")
 
                 style = "bold green" if line[:3] == '[x]' else "bold"
-
+    
                 styled_line.stylize(style, len(
                     str(index)) + 0, len(styled_line))
+                
+                styled_line.stylize("bright_cyan bold", 0, 2)
 
                 console.print(styled_line, markup=False)
 
     menu_options = [
         Separator(line=15 * "-"),
         Choice(name='Add task', value=0),
-        Choice(name='Delete tasks', value=1),
+        Choice(name='Edit task', value=3),
         Choice(name='Mark tasks complete', value=2),
         Choice(name='Mark tasks incomplete', value=7),
-        Choice(name='Edit task', value=3),
+        Choice(name='Delete tasks', value=1),
         Separator(line=15 * "-"),
+        Choice(name='Import tasks from project', value=4),
+        Choice(name='Export Tasks', value=4),
         Choice(name='Back to projects', value=4),
         Choice(name='Main menu ', value=5),
         Choice(name='Exit ', value=6)
