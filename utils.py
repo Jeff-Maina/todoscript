@@ -3,6 +3,9 @@ import json
 from rich.console import Console
 import webbrowser
 import time
+from yaspin import yaspin
+import os
+import subprocess
 
 console = Console(record=True)
 
@@ -121,10 +124,56 @@ def export_tasks(folder, tasks, format):
     else:
         os.makedirs(exports_folder_path, exist_ok=True)
 
-    print(tasks)
-    if format == 'csv':
-        with open(os.path.join(exports_folder_path, 'tasks.csv'), 'w') as file:
-            file.write("ID,Task,Status\n")
+    linebreak()  
 
-            for index, task in enumerate(tasks):
-                file.write(f"{index+1},{task[3:].strip()},{'completed' if task[:3] == '[x]' else 'pending'}\n")
+    tasks_list = []
+
+    for index,task in enumerate(tasks):
+        obj = {
+            'id': index,
+            'task': task[3:].strip(),
+            'status': 'Complete' if task[:3] == '[x]' else "Incomplete"
+        }  
+
+        tasks_list.append(obj)
+
+    if format == 'csv':
+        with yaspin(text="Generating tasks.csv...", color='light_magenta') as sp:
+            with open(os.path.join(exports_folder_path, 'exported_tasks.csv'), 'w') as file:
+                file.write("ID,Task,Status\n")
+                time.sleep(0.2)
+                for index, task in enumerate(tasks):
+                    file.write(f"{index+1},{task[3:].strip()},{'completed' if task[:3] == '[x]' else 'pending'}\n")
+                
+                sp.write(f"Successfully generated tasks.csv")
+
+    if format == 'json':
+        with yaspin(text="Generating tasks.json...", color='light_magenta') as sp:
+            with open(os.path.join(exports_folder_path, 'exported_tasks.json'), 'w') as file:
+                file.write("[\n")
+                for index, task in enumerate(tasks_list):
+                    if index == len(tasks_list) - 1:
+                        file.write(f"{json.dumps(task)}")
+                    else:
+                        file.write(f"{json.dumps(task)},\n")
+                        
+                file.write("]\n")
+                time.sleep(0.2)
+                sp.write(f"Successfully generated tasks.json")
+
+
+def open_file(exports_folder_path):
+    try:
+        if os.name == 'posix': 
+            subprocess.call(['xdg-open', exports_folder_path]) 
+        elif os.name == 'nt':  
+            os.startfile(exports_folder_path)
+        else:
+            raise OSError("Unsupported OS. Cannot open file automatically.")
+    except FileNotFoundError:
+        print(f"Error: The file {exports_folder_path} does not exist.")
+    except PermissionError:
+        print(f"Error: Permission denied when trying to open {exports_folder_path}.")
+    except OSError as e:
+        print(f"Error: Failed to open file. Details: {e}")
+        pass

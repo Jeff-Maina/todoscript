@@ -16,9 +16,10 @@ import os
 import mimetypes
 import tempfile
 import webbrowser
+import subprocess
 
 from main import configure, create_tasks, get_folders
-from utils import has_been_configured,export_tasks, clear_terminal, linebreak, get_configuration, generate_reports
+from utils import open_file, has_been_configured,export_tasks, clear_terminal, linebreak, get_configuration, generate_reports
 from constants import file_formats, themes, menu_options
 custom_syles = get_style(
     {
@@ -721,6 +722,43 @@ def view_folder_tasks(folder, prev=''):
         ).execute()
 
         export_tasks(folder,task_list, export_format)
+
+        linebreak()
+
+        view_export = inquirer.select(
+            message="Select option",
+            default=False,
+            style=custom_syles,
+            choices=[
+                Separator(line=15 * "-"),
+                Choice(name="View exported file", value=True),
+                Choice(name="Go back to tasks", value=False)
+            ]
+        ).execute()
+
+        file_name = ''
+
+        if export_format == 'md':
+            file_name = 'exported_tasks.md'
+        if export_format == 'json':
+            file_name = 'exported_tasks.json'
+        if export_format == 'csv':
+            file_name = 'exported_tasks.csv'
+        if export_format == 'yaml':
+            file_name = 'exported_tasks.yaml'
+        if export_format == 'txt':
+            file_name = 'exported_tasks.txt'
+
+        export_file_path = os.path.join(config['parent_folder_name'], folder, 'exports', file_name)
+
+        linebreak()
+        if view_export == True:
+            with yaspin(text=f'Opening {file_name}...', color='light_magenta') as sp:
+                time.sleep(0.3)
+            open_file(export_file_path)
+            view_folder_tasks(folder, prev='')
+        else:
+            view_folder_tasks(folder, prev='')
 
 
 def exit_app():
