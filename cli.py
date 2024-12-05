@@ -171,17 +171,19 @@ def view_reports():
 
     reports_table = Table(title="Tasks")
 
+    reports_data = []
+
     reports_table.add_column("ID", justify="center", style="bright_cyan")
     reports_table.add_column("Folder", justify="left", style="#e5c07b")
     reports_table.add_column("Progress", justify="left", style="#e5c07b")
 
-    for index, folder in enumerate(all_folders):
+    for fol_index, folder in enumerate(all_folders):
         total_tasks = 0
         completed_tasks = 0
         pending_tasks = 0
 
         with open(os.path.join(config['parent_folder_name'], folder, 'todos.txt'), 'r') as file:
-            for line in file:
+            for index, line in enumerate(file):
                 line = line.rstrip("\n")
 
                 if line[:3] == '[x]':
@@ -201,7 +203,9 @@ def view_reports():
 
                 stats = f"{graph} {percentage_complete}% ({completed_tasks}/{total_tasks})"
 
-        reports_table.add_row(str(index + 1), folder, stats)
+        reports_data.append(f"{fol_index + 1},{folder},{completed_tasks},{pending_tasks},{total_tasks}")
+
+        reports_table.add_row(str(fol_index + 1), folder, stats)
 
     console.print(reports_table)
 
@@ -239,10 +243,7 @@ def view_reports():
 
         ).execute()
 
-
-        generate_reports(reports_table,selected_formats)
-
-   
+        generate_reports(reports_data, reports_table, selected_formats)
 
     if selected_option == 2:
         exit_app()

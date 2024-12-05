@@ -51,7 +51,7 @@ def get_configuration():
   
 
 
-def generate_reports(table,formats):
+def generate_reports(reports_data,table,formats):
     console.print(table)
 
     for format in formats:
@@ -70,4 +70,14 @@ def generate_reports(table,formats):
 
             with open(svg_file,'w') as file:
                 file.write(svg)
-                
+        
+        if format == 'csv':
+            
+            cols = 'Index,Folder,Completed,Pending,Total'
+
+            with open("reports.csv", 'w') as file:
+                file.write(f"{cols}\n")
+                for data in reports_data:
+                    file.write(f"{data}\n")
+
+
