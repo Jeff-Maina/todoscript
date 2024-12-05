@@ -710,7 +710,7 @@ def view_folder_tasks(folder, prev=''):
             Choice(name="JSON (.json)", value="json"),
             Choice(name="CSV (.csv)", value="csv"),
             Choice(name="YAML (.yaml)", value="yaml"),
-            Choice(name="Plain Text (.txt)", value="txt")
+            Choice(name="HTML (.html)", value="html")
         ]
 
         export_format = inquirer.select(

@@ -156,10 +156,23 @@ def export_tasks(folder, tasks, format):
                         file.write(f"{json.dumps(task)}")
                     else:
                         file.write(f"{json.dumps(task)},\n")
-                        
+
                 file.write("]\n")
                 time.sleep(0.2)
                 sp.write(f"Successfully generated tasks.json")
+
+    if format == 'html':
+        with yaspin(text="Generating tasks.json...", color='light_magenta') as sp:
+            with open(os.path.join(exports_folder_path, 'exported_tasks.html'), 'w') as file:
+                file.write(f"<html><body><h1>{folder} tasks</h1><main>\n")
+                for index, task in enumerate(tasks_list):
+                    file.write(
+                        f'<div><input type="checkbox" id="task-{index}" {"checked" if task["status"] == "Complete" else ""}><label for="task-{index}">{task["task"]}</label></div>'
+                        )
+                file.write("</main></body></html>\n")
+                time.sleep(0.2)
+                sp.write(f"Successfully generated tasks.html")
+
 
 
 def open_file(exports_folder_path):
