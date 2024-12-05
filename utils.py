@@ -118,22 +118,22 @@ def export_tasks(folder, tasks, format):
 
     exports_folder = 'exports'
     exports_folder_path = os.path.join(tasks_folder, folder,
-                exports_folder)
+                                       exports_folder)
     if os.path.exists(exports_folder_path):
         pass
     else:
         os.makedirs(exports_folder_path, exist_ok=True)
 
-    linebreak()  
+    linebreak()
 
     tasks_list = []
 
-    for index,task in enumerate(tasks):
+    for index, task in enumerate(tasks):
         obj = {
             'id': index,
             'task': task[3:].strip(),
             'status': 'Complete' if task[:3] == '[x]' else "Incomplete"
-        }  
+        }
 
         tasks_list.append(obj)
 
@@ -143,8 +143,9 @@ def export_tasks(folder, tasks, format):
                 file.write("ID,Task,Status\n")
                 time.sleep(0.2)
                 for index, task in enumerate(tasks):
-                    file.write(f"{index+1},{task[3:].strip()},{'completed' if task[:3] == '[x]' else 'pending'}\n")
-                
+                    file.write(
+                        f"{index+1},{task[3:].strip()},{'completed' if task[:3] == '[x]' else 'pending'}\n")
+
                 sp.write(f"Successfully generated exported_tasks.csv")
 
     if format == 'json':
@@ -168,11 +169,11 @@ def export_tasks(folder, tasks, format):
                 for index, task in enumerate(tasks_list):
                     file.write(
                         f'<div><input type="checkbox" id="task-{index}" {"checked" if task["status"] == "Complete" else ""}><label for="task-{index}">{task["task"]}</label></div>'
-                        )
+                    )
                 file.write("</main></body></html>\n")
                 time.sleep(0.2)
                 sp.write(f"Successfully generated exported_tasks.html")
-    
+
     if format == 'yaml':
         with yaspin(text="Generating export_tasks.yaml...", color='light_magenta') as sp:
             with open(os.path.join(exports_folder_path, 'exported_tasks.yaml'), 'w') as file:
@@ -187,19 +188,31 @@ def export_tasks(folder, tasks, format):
                 time.sleep(0.2)
                 sp.write(f"Successfully generated exported_tasks.yaml")
 
+    if format == 'md':
+        with yaspin(text='Generating exported_tasks.md...', color='light_magenta') as sp:
+            with (open(os.path.join(exports_folder_path, 'exported.md'), 'w')) as file:
+                file.write("## Tasks \n")
+
+                for (index, line) in enumerate(tasks):
+                    file.write(f'- {line} \n')
+
+                time.sleep(0.2)
+                sp.write(f"Successfully generated exported_tasks.md")
+
 
 def open_file(exports_folder_path):
     try:
-        if os.name == 'posix': 
-            subprocess.call(['xdg-open', exports_folder_path]) 
-        elif os.name == 'nt':  
+        if os.name == 'posix':
+            subprocess.call(['xdg-open', exports_folder_path])
+        elif os.name == 'nt':
             os.startfile(exports_folder_path)
         else:
             raise OSError("Unsupported OS. Cannot open file automatically.")
     except FileNotFoundError:
         print(f"Error: The file {exports_folder_path} does not exist.")
     except PermissionError:
-        print(f"Error: Permission denied when trying to open {exports_folder_path}.")
+        print(
+            f"Error: Permission denied when trying to open {exports_folder_path}.")
     except OSError as e:
         print(f"Error: Failed to open file. Details: {e}")
         pass
