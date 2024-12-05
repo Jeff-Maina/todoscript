@@ -138,17 +138,17 @@ def export_tasks(folder, tasks, format):
         tasks_list.append(obj)
 
     if format == 'csv':
-        with yaspin(text="Generating tasks.csv...", color='light_magenta') as sp:
+        with yaspin(text="Generating exported_tasks.csv...", color='light_magenta') as sp:
             with open(os.path.join(exports_folder_path, 'exported_tasks.csv'), 'w') as file:
                 file.write("ID,Task,Status\n")
                 time.sleep(0.2)
                 for index, task in enumerate(tasks):
                     file.write(f"{index+1},{task[3:].strip()},{'completed' if task[:3] == '[x]' else 'pending'}\n")
                 
-                sp.write(f"Successfully generated tasks.csv")
+                sp.write(f"Successfully generated exported_tasks.csv")
 
     if format == 'json':
-        with yaspin(text="Generating tasks.json...", color='light_magenta') as sp:
+        with yaspin(text="Generating exported_tasks.json...", color='light_magenta') as sp:
             with open(os.path.join(exports_folder_path, 'exported_tasks.json'), 'w') as file:
                 file.write("[\n")
                 for index, task in enumerate(tasks_list):
@@ -159,10 +159,10 @@ def export_tasks(folder, tasks, format):
 
                 file.write("]\n")
                 time.sleep(0.2)
-                sp.write(f"Successfully generated tasks.json")
+                sp.write(f"Successfully generated exported_tasks.json")
 
     if format == 'html':
-        with yaspin(text="Generating tasks.json...", color='light_magenta') as sp:
+        with yaspin(text="Generating exported_tasks.html...", color='light_magenta') as sp:
             with open(os.path.join(exports_folder_path, 'exported_tasks.html'), 'w') as file:
                 file.write(f"<html><body><h1>{folder} tasks</h1><main>\n")
                 for index, task in enumerate(tasks_list):
@@ -171,8 +171,21 @@ def export_tasks(folder, tasks, format):
                         )
                 file.write("</main></body></html>\n")
                 time.sleep(0.2)
-                sp.write(f"Successfully generated tasks.html")
+                sp.write(f"Successfully generated exported_tasks.html")
+    
+    if format == 'yaml':
+        with yaspin(text="Generating export_tasks.yaml...", color='light_magenta') as sp:
+            with open(os.path.join(exports_folder_path, 'exported_tasks.yaml'), 'w') as file:
+                file.write("tasks:\n")
+                for (index, task) in enumerate(tasks_list):
+                    file.write(
+                        f"- id: {index}\n"
+                        f"  task: {task['task']}\n"
+                        f"  status: {task['status']}\n"
+                    )
 
+                time.sleep(0.2)
+                sp.write(f"Successfully generated exported_tasks.yaml")
 
 
 def open_file(exports_folder_path):
