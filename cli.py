@@ -18,7 +18,7 @@ import tempfile
 import webbrowser
 
 from main import configure, create_tasks, get_folders
-from utils import has_been_configured, clear_terminal, linebreak, get_configuration, generate_reports
+from utils import has_been_configured,export_tasks, clear_terminal, linebreak, get_configuration, generate_reports
 from constants import file_formats, themes, menu_options
 custom_syles = get_style(
     {
@@ -511,7 +511,7 @@ def view_folder_tasks(folder, prev=''):
                 last_index += 1
                 line = line.rstrip("\n")
 
-                task_list.append(f"{line[3:].strip()}")
+                task_list.append(f"{line.strip()}")
                 styled_line = Text(f"{index}. {line}") if index > 9 else Text(
                     f"{index}.  {line}")
 
@@ -526,17 +526,18 @@ def view_folder_tasks(folder, prev=''):
 
     menu_options = [
         Separator(line=15 * "-"),
-        Choice(name='Add task', value=0),
-        Choice(name='Edit task', value=3),
-        Choice(name='Mark tasks complete', value=2),
-        Choice(name='Mark tasks incomplete', value=7),
-        Choice(name='Delete tasks', value=1),
-        Separator(line=15 * "-"),
-        Choice(name='Import tasks from project', value=4),
-        Choice(name='Export Tasks', value=4),
-        Choice(name='Back to projects', value=4),
-        Choice(name='Main menu ', value=5),
-        Choice(name='Exit ', value=6)
+        Choice(name='➕ Add new task', value=0),
+        Choice(name='📝 Edit task', value=3),
+        Choice(name='✔️  Mark tasks as complete', value=2),
+        Choice(name='❌ Mark tasks as incomplete', value=7),
+        Choice(name='🚮 Delete tasks', value=1),
+        Separator(line=15 * ""),
+        Choice(name='📥 Import tasks from project', value=9),
+        Choice(name='📤 Export Tasks', value=8),
+        Separator(line=15 * ""),
+        Choice(name='📂 Return to project list', value=4),
+        Choice(name='🏠 Return to the main menu', value=5),
+        Choice(name='🚫 Exit application', value=6)
     ]
 
     linebreak()
@@ -580,6 +581,7 @@ def view_folder_tasks(folder, prev=''):
     ).execute()
 
     linebreak()
+
     # add todo
     if option == 0:
         new_todo = inquirer.text(
@@ -609,7 +611,6 @@ def view_folder_tasks(folder, prev=''):
             print(e)
 
         view_folder_tasks(folder)
-
     # delete todos
     if option == 1:
 
@@ -641,12 +642,13 @@ def view_folder_tasks(folder, prev=''):
                 os.unlink(temp_file_name)
             print(f"An error occured: {e}")
         view_folder_tasks(folder, prev='delete')
-
     # mark todo complete
     if option == 2:
         change_status("complete")
+    # mark todo incomplete
     if option == 7:
         change_status("incomplete")
+    # edit task
     if option == 3:
 
         task_index = inquirer.number(
@@ -690,7 +692,6 @@ def view_folder_tasks(folder, prev=''):
             view_folder_tasks(folder)
         else:
             view_folder_tasks(folder)
-
     # back to projects
     if option == 4:
         view_projects()
@@ -700,6 +701,26 @@ def view_folder_tasks(folder, prev=''):
     # exit
     if option == 6:
         exit_app()
+    # export tasks
+    if option == 8:
+        export_format_options = [
+            Separator(line=15 * "-"),
+            Choice(name="Markdown (.md)", value="md"),
+            Choice(name="JSON (.json)", value="json"),
+            Choice(name="CSV (.csv)", value="csv"),
+            Choice(name="YAML (.yaml)", value="yaml"),
+            Choice(name="Plain Text (.txt)", value="txt")
+        ]
+
+        export_format = inquirer.select(
+            message="Select format to export tasks",
+            choices=export_format_options,
+            default="txt",
+            style=custom_syles,
+            pointer=">"
+        ).execute()
+
+        export_tasks(folder,task_list, export_format)
 
 
 def exit_app():
