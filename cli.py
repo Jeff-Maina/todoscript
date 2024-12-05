@@ -19,7 +19,7 @@ import webbrowser
 import subprocess
 
 from main import configure, create_tasks, get_folders
-from utils import open_file, has_been_configured,export_tasks, clear_terminal, linebreak, get_configuration, generate_reports
+from utils import open_file, has_been_configured, export_tasks, clear_terminal, linebreak, get_configuration, generate_reports
 from constants import file_formats, themes, menu_options
 custom_syles = get_style(
     {
@@ -461,7 +461,7 @@ def view_projects():
     view_folder_tasks(option)
 
 
-def view_folder_tasks(folder, prev=''):
+def view_folder_tasks(folder, prev='', tasks_filter=''):
     clear_terminal()
 
     last_index = 0
@@ -522,12 +522,19 @@ def view_folder_tasks(folder, prev=''):
                     str(index)) + 0, len(styled_line))
 
                 styled_line.stylize("bright_cyan bold", 0, 2)
-
-                console.print(styled_line, markup=False)
+                if tasks_filter == "completed":
+                    if line[:3] == '[x]':
+                        console.print(styled_line, markup=False)
+                elif tasks_filter == "pending":
+                    if line[:3] == '[ ]':
+                        console.print(styled_line, markup=False)
+                else:
+                    console.print(styled_line, markup=False)
 
     menu_options = [
         Separator(line=15 * "-"),
-        Choice(name='➕ Add new task', value=0),
+        Choice(name='🏷️ Filter tasks', value=10),
+        Separator(line=15 * ""),
         Choice(name='📝 Edit task', value=3),
         Choice(name='✔️  Mark tasks as complete', value=2),
         Choice(name='❌ Mark tasks as incomplete', value=7),
@@ -721,7 +728,7 @@ def view_folder_tasks(folder, prev=''):
             pointer=">"
         ).execute()
 
-        export_tasks(folder,task_list, export_format)
+        export_tasks(folder, task_list, export_format)
 
         linebreak()
 
@@ -749,7 +756,8 @@ def view_folder_tasks(folder, prev=''):
         if export_format == 'txt':
             file_name = 'exported_tasks.txt'
 
-        export_file_path = os.path.join(config['parent_folder_name'], folder, 'exports', file_name)
+        export_file_path = os.path.join(
+            config['parent_folder_name'], folder, 'exports', file_name)
 
         linebreak()
         if view_export == True:
@@ -759,6 +767,35 @@ def view_folder_tasks(folder, prev=''):
             view_folder_tasks(folder, prev='')
         else:
             view_folder_tasks(folder, prev='')
+
+    if option == 10:
+
+        filter_categories = [
+            {"key": "s", "value": "status", "name": "Filter by Status"},
+            {"key": "d", "value": "date", "name": "Filter by Date"},
+            {"key": "p", "value": "priority", "name": "Filter by Priority"},
+        ]
+
+        status_filters = [
+            {"key": "a", "value": "all", "name": "All tasks"},
+            {"key": "c", "value": "completed", "name": "Completed tasks"},
+            {"key": "p", "value": "pending", "name": "Pending tasks"},
+        ]
+
+        filter_type = inquirer.expand(
+            message="How would you like to filter?",
+            instruction='press h to view all choices',
+            choices=filter_categories,
+        ).execute()
+
+        if filter_type == "status":
+            result = inquirer.expand(
+                message="Select status filter:",
+                instruction='press h to view all choices',
+                choices=status_filters,
+            ).execute()
+            view_folder_tasks(folder, '', result)
+            print("Invalid selection!")
 
 
 def exit_app():
