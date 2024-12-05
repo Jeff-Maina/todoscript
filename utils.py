@@ -1,5 +1,9 @@
 import os.path
 import json
+from rich.console  import Console
+import webbrowser
+
+console = Console(record=True)
 
 # helper functions
 
@@ -38,3 +42,32 @@ def get_configuration():
             return data
     else:
         return None
+
+
+# export utils
+
+
+
+  
+
+
+def generate_reports(table,formats):
+    console.print(table)
+
+    for format in formats:
+        if format == 'html':
+            html_file = 'reports_table.html'
+
+            html = console.export_html(clear=False)
+
+            with open(html_file,'w') as file:
+                file.write(html)
+
+        if format == 'svg':
+            svg_file = 'reports_table.svg'
+
+            svg = console.export_svg(clear=False)
+
+            with open(svg_file,'w') as file:
+                file.write(svg)
+                

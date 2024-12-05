@@ -17,7 +17,7 @@ import mimetypes
 import tempfile
 
 from main import configure, create_tasks, get_folders
-from utils import has_been_configured, clear_terminal, linebreak, get_configuration
+from utils import has_been_configured, clear_terminal, linebreak, get_configuration, generate_reports
 from constants import file_formats, themes, menu_options
 custom_syles = get_style(
     {
@@ -150,9 +150,101 @@ def main_menu():
     if menu_option == 3:
         update_configuration()
 
+    if menu_option == 4:
+        view_reports()
+
     if menu_option == 5:
         clear_terminal()
 
+        exit_app()
+
+
+def view_reports():
+
+    clear_terminal()
+
+    linebreak()
+    console.print("[red bold] Reports")
+    linebreak()
+
+    all_folders = get_folders()
+
+    reports_table = Table(title="Tasks")
+
+    reports_table.add_column("ID", justify="center", style="bright_cyan")
+    reports_table.add_column("Folder", justify="left", style="#e5c07b")
+    reports_table.add_column("Progress", justify="left", style="#e5c07b")
+
+    for index, folder in enumerate(all_folders):
+        total_tasks = 0
+        completed_tasks = 0
+        pending_tasks = 0
+
+        with open(os.path.join(config['parent_folder_name'], folder, 'todos.txt'), 'r') as file:
+            for line in file:
+                line = line.rstrip("\n")
+
+                if line[:3] == '[x]':
+                    completed_tasks += 1
+                if line[:3] == '[ ]':
+                    pending_tasks += 1
+
+                if line[:3] == '[ ]' or line[:3] == '[x]':
+                    total_tasks += 1
+
+                percentage_complete = round(
+                    (completed_tasks / total_tasks) * 100) if total_tasks > 0 else 0
+                bars = int(percentage_complete / 10) if total_tasks > 0 else 0
+                strokes = 10 - bars
+
+                graph = f"[{'[white]█[/white]'*bars}{'-'*strokes}]"
+
+                stats = f"{graph} {percentage_complete}% ({completed_tasks}/{total_tasks})"
+
+        reports_table.add_row(str(index + 1), folder, stats)
+
+    console.print(reports_table)
+
+    linebreak()
+
+    reports_menu_options = [
+        Separator(line=15*"-"),
+        Choice(name="Back to main menu", value=0),
+        Choice(name="Export reports", value=1),
+        Choice(name='Exit', value=2)
+    ]
+
+    selected_option = inquirer.select(
+        message='Select option',
+        style=custom_syles,
+        choices=reports_menu_options
+    ).execute()
+
+    if selected_option == 0:
+        main_menu()
+
+    if selected_option == 1:
+        format_options = [
+            Choice(name='CSV', value='csv'),
+            Choice(name='JSON', value='json'),
+            Choice(name='HTML', value='html'),
+            Choice(name='SVG', value='svg'),
+        ]
+
+        selected_formats = inquirer.select(
+            message='Select format',
+            style=custom_syles,
+            choices=format_options,
+            multiselect=True
+
+        ).execute()
+
+
+        generate_reports(reports_table,selected_formats)
+
+   
+
+    if selected_option == 2:
         exit_app()
 
 
@@ -359,7 +451,8 @@ def view_folder_tasks(folder, prev=''):
                 elif line[:3] == "[x]":
                     completed += 1
 
-        percentage_done = round(completed/all_items * 100) if all_items > 0 else 0
+        percentage_done = round(completed/all_items *
+                                100) if all_items > 0 else 0
         total_bars = int(percentage_done/100 * 10) if all_items > 0 else 0
         bars = "█" * total_bars
         strokes = "-" * (10-total_bars)
@@ -380,10 +473,10 @@ def view_folder_tasks(folder, prev=''):
                     f"{index}.  {line}")
 
                 style = "bold green" if line[:3] == '[x]' else "bold"
-    
+
                 styled_line.stylize(style, len(
                     str(index)) + 0, len(styled_line))
-                
+
                 styled_line.stylize("bright_cyan bold", 0, 2)
 
                 console.print(styled_line, markup=False)
