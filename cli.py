@@ -15,6 +15,7 @@ from InquirerPy.separator import Separator
 import os
 import mimetypes
 import tempfile
+import webbrowser
 
 from main import configure, create_tasks, get_folders
 from utils import has_been_configured, clear_terminal, linebreak, get_configuration, generate_reports
@@ -208,7 +209,7 @@ def view_reports():
             'project': folder,
             'completed_tasks': completed_tasks,
             'pending_tasks': pending_tasks,
-            'total': total_tasks
+            'total_tasks': total_tasks
         })
 
         reports_table.add_row(str(fol_index + 1), folder, stats)
@@ -235,6 +236,7 @@ def view_reports():
 
     if selected_option == 1:
         format_options = [
+            Separator(line=15*"-"),
             Choice(name='CSV', value='csv'),
             Choice(name='JSON', value='json'),
             Choice(name='HTML', value='html'),
@@ -249,7 +251,41 @@ def view_reports():
 
         ).execute()
 
+        clear_terminal()
+
+        linebreak()
+        console.print("[red bold] Reports exported")
+        linebreak()
         generate_reports(reports_data, reports_table, selected_formats)
+
+        report_menu_options = [
+            Separator(line=15*"-"),
+            Choice(name="Go back to reports", value=0),
+            Choice(name="Return to main menu", value=1),
+            Choice(name="Open report in browser", value=2),
+            Choice(name="Exit TODO CLI", value=3),
+        ]
+
+        linebreak()
+
+        selected_reports_option = inquirer.select(
+            message='Select option',
+            style=custom_syles,
+            choices=report_menu_options
+        ).execute()
+
+        if selected_reports_option == 0:
+            view_reports()
+
+        if selected_reports_option == 1:
+            main_menu()
+
+        if selected_reports_option == 2:
+            webbrowser.open("reports/reports_table.html")
+            view_reports()
+
+        if selected_reports_option == 3:
+            exit_app()
 
     if selected_option == 2:
         exit_app()

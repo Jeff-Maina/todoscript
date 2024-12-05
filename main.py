@@ -58,6 +58,8 @@ def configure(config, is_editing=False):
 
 
 def create_folder_if_not_exists(folder):
+
+
     if not os.path.exists(folder):
         folder_path = os.path.join(parent_folder, folder)
         with yaspin(text=f'Creating {folder}...', color='light_magenta') as sp:

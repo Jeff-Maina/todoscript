@@ -2,6 +2,7 @@ import os.path
 import json
 from rich.console  import Console
 import webbrowser
+import time
 
 console = Console(record=True)
 
@@ -52,9 +53,17 @@ def get_configuration():
 
 
 def generate_reports(reports_data,table,formats):
-    console.print(table)
+    if "html" in formats or 'svg' in formats:
+        console.print(table)
 
-    print(reports_data)
+    reports_folder = 'reports'
+    os.makedirs(reports_folder, exist_ok=True)
+
+    tasks =[]
+
+    for format in formats:
+        tasks.append(f'Generate reports.{format} report')
+
 
     for format in formats:
         if format == 'html':
@@ -62,7 +71,7 @@ def generate_reports(reports_data,table,formats):
 
             html = console.export_html(clear=False)
 
-            with open(html_file,'w') as file:
+            with open(os.path.join(reports_folder,html_file),'w') as file:
                 file.write(html)
 
         if format == 'svg':
@@ -70,21 +79,20 @@ def generate_reports(reports_data,table,formats):
 
             svg = console.export_svg(clear=False)
 
-            with open(svg_file,'w') as file:
+            with open(os.path.join(reports_folder,svg_file),'w') as file:
                 file.write(svg)
         
         if format == 'csv':
             
-            cols = 'Index,Folder,Completed,Pending,Total'
+            cols = 'Index,Folder,Completed tasks,Pending tasks,Total tasks'
 
-            with open("reports.csv", 'w') as file:
+            with open(os.path.join(reports_folder,'reports.csv'), 'w') as file:
                 file.write(f"{cols}\n")
                 for data in reports_data:
-                    file.write(f"{data['id']},{data['folder']},{data['completed']},{data['pending']},{data['total']}\n")
+                    file.write(f"{data['id']},{data['project']},{data['completed_tasks']},{data['pending_tasks']},{data['total_tasks']}\n")
 
         if format == 'json':
-            json_obj = {}
-            with open('reports.json', 'w') as file:
+            with open(os.path.join(reports_folder,'reports.json'), 'w') as file:
                 file.write("[\n")
                 for index,data in enumerate(reports_data):
                     if index == len(reports_data) - 1:
@@ -92,6 +100,11 @@ def generate_reports(reports_data,table,formats):
                     else:
                         file.write(f"{json.dumps(data)},\n")
                 file.write("]\n")
-            
 
+    linebreak()
+    with console.status("[bold green]Generating reports...") as status:
+        while tasks:
+            task = tasks.pop(0)
+            time.sleep(1)
+            console.log(f"{task} complete")
 
