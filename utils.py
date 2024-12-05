@@ -190,11 +190,11 @@ def export_tasks(folder, tasks, format):
 
     if format == 'md':
         with yaspin(text='Generating exported_tasks.md...', color='light_magenta') as sp:
-            with (open(os.path.join(exports_folder_path, 'exported.md'), 'w')) as file:
+            with (open(os.path.join(exports_folder_path, 'exported_tasks.md'), 'w')) as file:
                 file.write("## Tasks \n")
 
                 for (index, line) in enumerate(tasks):
-                    file.write(f'- {line} \n')
+                    file.write(f'- {line}. \n')
 
                 time.sleep(0.2)
                 sp.write(f"Successfully generated exported_tasks.md")

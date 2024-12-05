@@ -15,7 +15,7 @@ This script will scan the current directory for folders and create a "tasks" fol
 - [ ] Add Search and Filter.
 - [ ] Parse task comments from project files and add them to the task file.
 - [ ] Optional due dates.
-- [ ] Option to export tasks as CSV, JSON, Markdown
+- [x] Option to export tasks as CSV, JSON, Markdown, HTML, YAML
 - [ ] Generate tasks based on project type.
 - [x] Export reports table to html,csv,json and svg
 - [x] View detailed project task reports
