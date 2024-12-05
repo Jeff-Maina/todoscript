@@ -54,6 +54,8 @@ def get_configuration():
 def generate_reports(reports_data,table,formats):
     console.print(table)
 
+    print(reports_data)
+
     for format in formats:
         if format == 'html':
             html_file = 'reports_table.html'
@@ -78,6 +80,18 @@ def generate_reports(reports_data,table,formats):
             with open("reports.csv", 'w') as file:
                 file.write(f"{cols}\n")
                 for data in reports_data:
-                    file.write(f"{data}\n")
+                    file.write(f"{data['id']},{data['folder']},{data['completed']},{data['pending']},{data['total']}\n")
+
+        if format == 'json':
+            json_obj = {}
+            with open('reports.json', 'w') as file:
+                file.write("[\n")
+                for index,data in enumerate(reports_data):
+                    if index == len(reports_data) - 1:
+                        file.write(f"{json.dumps(data)}\n")
+                    else:
+                        file.write(f"{json.dumps(data)},\n")
+                file.write("]\n")
+            
 
 

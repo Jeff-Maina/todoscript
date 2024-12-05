@@ -203,7 +203,13 @@ def view_reports():
 
                 stats = f"{graph} {percentage_complete}% ({completed_tasks}/{total_tasks})"
 
-        reports_data.append(f"{fol_index + 1},{folder},{completed_tasks},{pending_tasks},{total_tasks}")
+        reports_data.append({
+            'id': fol_index + 1,
+            'project': folder,
+            'completed_tasks': completed_tasks,
+            'pending_tasks': pending_tasks,
+            'total': total_tasks
+        })
 
         reports_table.add_row(str(fol_index + 1), folder, stats)
 
