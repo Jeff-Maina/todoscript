@@ -533,8 +533,9 @@ def view_folder_tasks(folder, prev='', tasks_filter=''):
 
     menu_options = [
         Separator(line=15 * "-"),
-        Choice(name='🏷️ Filter tasks', value=10),
+        Choice(name='🏷️  Filter tasks', value=10),
         Separator(line=15 * ""),
+        Choice(name='➕ Add task', value=0),
         Choice(name='📝 Edit task', value=3),
         Choice(name='✔️  Mark tasks as complete', value=2),
         Choice(name='❌ Mark tasks as incomplete', value=7),
@@ -637,7 +638,6 @@ def view_folder_tasks(folder, prev='', tasks_filter=''):
                 with open(file_path, 'r') as file, tempfile.NamedTemporaryFile("w", delete=False) as temp_file:
                     temp_file_name = temp_file.name
                     for index, line in enumerate(file):
-                        time.sleep(0.2)
                         if index + 1 not in task_indices:
                             temp_file.write(line)
                         if index + 1 in task_indices:
