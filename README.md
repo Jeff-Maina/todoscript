@@ -4,7 +4,6 @@ This script will scan the current directory for folders and create a "tasks" fol
 
 ## to-do
 
-- [ ] populate the tasks with placeholders and pre-defined templates.
 - [x] CRUD Operations.
     - [x] Add task
     - [x] Edit task
@@ -12,7 +11,8 @@ This script will scan the current directory for folders and create a "tasks" fol
 - [x] Display all tasks.
 - [x] Show counts of completed, in-progress, and pending tasks.
 - [x] Display progress bars for tasks.
-- [ ] Add Search and Filter.
+- [ ] Search tasks.
+- [x] Filter Tasks based on status.
 - [ ] Parse task comments from project files and add them to the task file.
 - [ ] Optional due dates.
 - [x] Option to export tasks as CSV, JSON, Markdown, HTML, YAML

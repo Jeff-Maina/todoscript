@@ -132,7 +132,7 @@ def main_menu():
     console.print("[red bold] Main menu")
     linebreak()
 
-    menu_option = inquirer.rawlist(
+    menu_option = inquirer.select(
         message="Select an option",
         choices=menu_options,
         pointer=">",
@@ -221,9 +221,9 @@ def view_reports():
 
     reports_menu_options = [
         Separator(line=15*"-"),
-        Choice(name="Back to main menu", value=0),
-        Choice(name="Export reports", value=1),
-        Choice(name='Exit', value=2)
+        Choice(name='🏠 Return to the main menu', value=0),
+        Choice(name='📤 Export reports', value=1),
+        Choice(name="🚫 Exit application", value=2)
     ]
 
     selected_option = inquirer.select(
@@ -261,10 +261,10 @@ def view_reports():
 
         report_menu_options = [
             Separator(line=15*"-"),
-            Choice(name="Go back to reports", value=0),
-            Choice(name="Return to main menu", value=1),
-            Choice(name="Open report in browser", value=2),
-            Choice(name="Exit TODO CLI", value=3),
+            Choice(name="📊 Go back to reports", value=0),
+            Choice(name="🏠 Return to the main menu", value=1),
+            Choice(name="🌐 Open report in browser", value=2),
+            Choice(name="🚫 Exit application", value=3),
         ]
 
         linebreak()
@@ -415,9 +415,9 @@ def generate_tasks():
 
     menu_options = [
         Separator(line=15 * "-"),
-        Choice(name='View projects', value=0),
-        Choice(name='Go back to main menu ', value=1),
-        Choice(name='Exit ', value=2)
+        Choice(name='📂 View projects', value=0),
+        Choice(name="🏠 Return to the main menu", value=1),
+        Choice(name='🚫 Exit application', value=2)
     ]
 
     option = inquirer.rawlist(
