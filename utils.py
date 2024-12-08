@@ -135,14 +135,13 @@ def export_tasks(folder, tasks, format, delimiter=','):
         return ' '.join(word for word in task.split(' ') if not word.startswith('@'))
 
     for index, task in enumerate(tasks):
-        obj = {
+        tasks_list.append({
             'id': index,
-            'task': get_task_without_tags(task),
+            'task': get_task_without_tags(task[3:]),
             'status': 'Complete' if task[:3] == '[x]' else "Incomplete",
             'tags': get_tags(task)
-        }
+        })
 
-        tasks_list.append(obj)
 
     if format == 'csv':
         with open(os.path.join(exports_folder_path, 'exported_tasks.csv'), 'w') as file:
@@ -160,9 +159,7 @@ def export_tasks(folder, tasks, format, delimiter=','):
         with open(os.path.join(exports_folder_path, 'exported_tasks.json'), 'w') as file:
             file.write("[\n")
             for index, task in enumerate(tasks_list):
-                tags = get_tags(task)
-                line_without_tags = get_task_without_tags(task)
-
+           
                 if index == len(tasks_list) - 1:
                     file.write(f"{json.dumps(task)}")
                 else:
