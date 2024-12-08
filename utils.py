@@ -169,11 +169,17 @@ def export_tasks(folder, tasks, format, delimiter=','):
             console.print(f" [bright_magenta]✔ Successfully generated exported_tasks.json")
 
     if format == 'html':
+        html_style = "<style>body{font-family: 'Inter' }#tags_container{display: flex; flex-wrap: wrap; gap: 10px;} .tag{color: #d50dd5; font-weight: 600;} .task{display:flex; gap:10px; align-items: center}</style>"
+        linked_styles = '<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">'
         with open(os.path.join(exports_folder_path, 'exported_tasks.html'), 'w') as file:
-            file.write(f"<html><body><h1>{folder} tasks</h1><main>\n")
+            file.write(f"<html><head>{html_style}{linked_styles}</head><body><h1>{folder} tasks</h1><main>\n")
             for index, task in enumerate(tasks_list):
+                tags = task['tags']
+
+                tags_html = [f"<span class='tag'>@{tag}</span>" for tag in tags]
+
                 file.write(
-                    f'<div><input type="checkbox" id="task-{index}" {"checked" if task["status"] == "Complete" else ""}><label for="task-{index}">{task["task"]}</label></div>'
+                    f'<div class="task"><input type="checkbox" id="task-{index}" {"checked" if task["status"] == "Complete" else ""}><label for="task-{index}">{task["task"]}</label> <div id="tags_container">{",".join(tags_html)}</div></div>'
                 )
             file.write("</main></body></html>\n")
             console.print(f" [bright_magenta]✔ Successfully generated exported_tasks.html")
@@ -196,7 +202,7 @@ def export_tasks(folder, tasks, format, delimiter=','):
             for (index, line) in enumerate(tasks):
                 file.write(f'- {line}. \n')
 
-            console.print(f" [bright_magenta]✔ Successfully generated exported_tasks.csv")
+            console.print(f" [bright_magenta]✔ Successfully generated exported_tasks.md")
 
 
 def open_file(exports_folder_path):
