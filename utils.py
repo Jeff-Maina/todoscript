@@ -188,10 +188,12 @@ def export_tasks(folder, tasks, format, delimiter=','):
         with open(os.path.join(exports_folder_path, 'exported_tasks.yaml'), 'w') as file:
             file.write("tasks:\n")
             for (index, task) in enumerate(tasks_list):
+                tags = task['tags']
                 file.write(
                     f"- id: {index}\n"
                     f"  task: {task['task']}\n"
                     f"  status: {task['status']}\n"
+                    f"  tags: {' | '.join(tags)}\n"
                 )
             console.print(f" [bright_magenta]✔ Successfully generated exported_tasks.yaml")
 
