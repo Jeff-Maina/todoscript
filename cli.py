@@ -19,6 +19,7 @@ import mimetypes
 import tempfile
 import webbrowser
 import subprocess
+import re
 
 from main import configure, create_tasks, get_folders
 from utils import open_file, has_been_configured, export_tasks, clear_terminal, linebreak, get_configuration, generate_reports
@@ -870,7 +871,32 @@ def view_selected_tasks(tasks, selected_indices, file_path, folder):
         view_folder_tasks(folder)
 
     if action == 3:
+        tags = inquirer.text(
+            message='Enter tags (use comma-separated list)', style=custom_syles
+        ).execute()
+
+        added_tags = tags.split(',')
+
         
+        try:
+            with open(file_path, 'r') as file, tempfile.NamedTemporaryFile("w", delete=False) as temp_file:
+                temp_file_name = temp_file.name
+
+                for index, line in enumerate(file):
+                    line = line.rstrip("\n")
+
+                    if index in selected_indices:
+                        temp_file.write(f"{line.rstrip()} {' '.join([f'@{tag.strip()}' for tag in added_tags])}\n")
+                        print(line)
+                    else:
+                        temp_file.write(f'{line}\n')
+
+            os.replace(temp_file_name, file_path)
+        except Exception as e:
+            if 'temp_file_name' in locals():
+                os.unlink(temp_file_name)
+            print(f"An error occurred: {e}")
+
         view_folder_tasks(folder)
 
 
@@ -879,6 +905,8 @@ def render_task(line, index):
 
     styled_line = Text(f"  {index}. {status} {line[3:]}") if index > 9 else Text(
         f"  {index}.  {status} {line[3:]}")
+    
+
 
     text = 'grey39' if line[:3] == '[x]' else 'bright_white'
 
@@ -886,6 +914,10 @@ def render_task(line, index):
         text, len(str(index)) + 7, len(styled_line))
 
     styled_line.stylize("grey39", 0, 6)
+
+    for match in re.finditer(r'@(\w+)', line):
+        start,end = match.span()
+        styled_line.stylize("yellow", start + 5, end + 5)
 
     console.print(styled_line, markup=False)
 
