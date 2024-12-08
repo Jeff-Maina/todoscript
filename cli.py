@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 from InquirerPy import inquirer, prompt, get_style
 from InquirerPy.validator import NumberValidator, EmptyInputValidator
 from rich.table import Table
@@ -27,13 +29,13 @@ custom_syles = get_style(
         "answermark": "#e5c07b",
         "answer": "#61afef",
         "input": "#98c379",
-        "question": "#fff",
+        "question": "#6c6c6c",
         "answered_question": "",
         "instruction": "#abb2bf",
         "long_instruction": "#abb2bf",
-        "pointer": "#A1EEBD bold",
+        "pointer": "#48bfef",
         "checkbox": "#98c379",
-        "separator": "",
+        "separator": "#626262",
         "skipped": "#5c6370",
         "validator": "",
         "marker": "#e5c07b",
@@ -314,7 +316,7 @@ def view_configuration():
     linebreak()
 
     menu_options = [
-        Separator(line=15 * "-"),
+        Separator(line=15 * " "),
         Choice(name='Go back to main menu', value=0),
         Choice(name='Update configuration', value=1)
     ]
@@ -414,7 +416,7 @@ def generate_tasks():
     linebreak()
 
     menu_options = [
-        Separator(line=15 * "-"),
+        Separator(line=15 * " "),
         Choice(name='📂 View projects', value=0),
         Choice(name="🏠 Return to the main menu", value=1),
         Choice(name='🚫 Exit application', value=2)
@@ -467,9 +469,6 @@ def view_folder_tasks(folder, prev='', tasks_filter=''):
     last_index = 0
 
     linebreak()
-    console.print(f"[red bold] {folder} tasks")
-    linebreak()
-
     all_items = 0
     completed = 0
     pending_tasks = 0
@@ -501,52 +500,30 @@ def view_folder_tasks(folder, prev='', tasks_filter=''):
         bars = "█" * total_bars
         strokes = "-" * (10-total_bars)
 
-        progress_bar = f'Progress: [white bold] [{bars}{strokes}] [/white bold] {percentage_done}% Complete ({completed}/{all_items})'
+        progress_bar = f' [bright_white underline]{folder} tasks[/bright_white underline] [grey39][{completed}/{all_items}] [/grey39]'
         # Display the counts at the top before tasks
         console.print(progress_bar)
         linebreak()
 
         with open(file_path, encoding='utf-8') as file:
             for index, line in enumerate(file, start=1):
+                task_list.append(f"{line.strip()}")
 
                 last_index += 1
                 line = line.rstrip("\n")
 
-                task_list.append(f"{line.strip()}")
-                styled_line = Text(f"{index}. {line}") if index > 9 else Text(
-                    f"{index}.  {line}")
-
-                style = "bold green" if line[:3] == '[x]' else "bold"
-
-                styled_line.stylize(style, len(
-                    str(index)) + 0, len(styled_line))
-
-                styled_line.stylize("bright_cyan bold", 0, 2)
-                if tasks_filter == "completed":
-                    if line[:3] == '[x]':
-                        console.print(styled_line, markup=False)
-                elif tasks_filter == "pending":
-                    if line[:3] == '[ ]':
-                        console.print(styled_line, markup=False)
-                else:
-                    console.print(styled_line, markup=False)
+                render_task(line, index)
 
     menu_options = [
-        Separator(line=15 * "-"),
-        Choice(name='🏷️  Filter tasks', value=10),
+        Separator(line=15 * " "),
+        Choice(name='Select tasks', value=0),
         Separator(line=15 * ""),
-        Choice(name='➕ Add task', value=0),
-        Choice(name='📝 Edit task', value=3),
-        Choice(name='✔️  Mark tasks as complete', value=2),
-        Choice(name='❌ Mark tasks as incomplete', value=7),
-        Choice(name='🚮 Delete tasks', value=1),
+        Choice(name='Filter tasks', value=10),
+        Choice(name='Import/ Export tasks', value=9),
         Separator(line=15 * ""),
-        Choice(name='📥 Import tasks from project', value=9),
-        Choice(name='📤 Export Tasks', value=8),
-        Separator(line=15 * ""),
-        Choice(name='📂 Return to project list', value=4),
-        Choice(name='🏠 Return to the main menu', value=5),
-        Choice(name='🚫 Exit application', value=6)
+        Choice(name='Back to projects', value=4),
+        Choice(name='Back to main menu', value=5),
+        Choice(name='Exit application', value=6)
     ]
 
     linebreak()
@@ -581,7 +558,7 @@ def view_folder_tasks(folder, prev='', tasks_filter=''):
             print(f"An error occured: {e}")
         view_folder_tasks(folder, prev='mark complete')
 
-    option = inquirer.select(
+    option = inquirer.rawlist(
         message='Select option',
         choices=menu_options,
         default=0,
@@ -591,35 +568,47 @@ def view_folder_tasks(folder, prev='', tasks_filter=''):
 
     linebreak()
 
-    # add todo
     if option == 0:
-        new_todo = inquirer.text(
-            message='Enter task title',
-            style=custom_syles
-        ).execute()
-
-        todo_status = inquirer.select(
-            message='Select task status',
+        selected_tasks = inquirer.text(
+            message="Enter task indices (comma-separated)",
             style=custom_syles,
-            default="Incomplete",
-            choices=[
-                Choice(name='Complete', value='Complete'),
-                Choice(name='Incomplete', value='Incomplete'),
-            ]
         ).execute()
 
-        status = '[ ]' if todo_status == 'Incomplete' else '[x]'
+        selected_tasks_indices = [
+            int(i.strip()) for i in selected_tasks.split(",") if i.strip().isdigit()]
 
-        try:
-            with yaspin(text='Creating task...', color='light_magenta') as sp:
-                time.sleep(0.2)
-                with open(file_path, 'a') as file:
-                    file.write(f'{status} {new_todo}\n')
-                sp.write("Task added successfully")
-        except Exception as e:
-            print(e)
+        view_selected_tasks(
+            task_list, selected_tasks_indices, file_path, folder)
 
-        view_folder_tasks(folder)
+    # add todo
+    # if option == 0:
+    #     new_todo = inquirer.text(
+    #         message='Enter task title',
+    #         style=custom_syles
+    #     ).execute()
+
+    #     todo_status = inquirer.select(
+    #         message='Select task status',
+    #         style=custom_syles,
+    #         default="Incomplete",
+    #         choices=[
+    #             Choice(name='Complete', value='Complete'),
+    #             Choice(name='Incomplete', value='Incomplete'),
+    #         ]
+    #     ).execute()
+
+    #     status = '[ ]' if todo_status == 'Incomplete' else '[x]'
+
+    #     try:
+    #         with yaspin(text='Creating task...', color='light_magenta') as sp:
+    #             time.sleep(0.2)
+    #             with open(file_path, 'a') as file:
+    #                 file.write(f'{status} {new_todo}\n')
+    #             sp.write("Task added successfully")
+    #     except Exception as e:
+    #         print(e)
+
+    #     view_folder_tasks(folder)
     # delete todos
     if option == 1:
 
@@ -688,7 +677,7 @@ def view_folder_tasks(folder, prev='', tasks_filter=''):
                     for index, line in enumerate(edit_file):
                         line = line.rstrip("\n")
                         if index == (int(task_index) - 1):
-                            edit_temp_file.write(f"{line[:3]} {edit_task}\n")
+                            edit_temp_file.write(f"{edit_task}\n")
                         else:
                             edit_temp_file.write(f"{line}\n")
 
@@ -712,7 +701,7 @@ def view_folder_tasks(folder, prev='', tasks_filter=''):
     # export tasks
     if option == 8:
         export_format_options = [
-            Separator(line=15 * "-"),
+            Separator(line=15 * " "),
             Choice(name="Markdown (.md)", value="md"),
             Choice(name="JSON (.json)", value="json"),
             Choice(name="CSV (.csv)", value="csv"),
@@ -728,7 +717,14 @@ def view_folder_tasks(folder, prev='', tasks_filter=''):
             pointer=">"
         ).execute()
 
-        export_tasks(folder, task_list, export_format)
+        if export_format == 'csv':
+            delimiter = inquirer.text(
+                message="Enter delimiter",
+                default=",",
+                style=custom_syles
+            ).execute()
+
+        export_tasks(folder, task_list, export_format, delimiter)
 
         linebreak()
 
@@ -737,7 +733,7 @@ def view_folder_tasks(folder, prev='', tasks_filter=''):
             default=False,
             style=custom_syles,
             choices=[
-                Separator(line=15 * "-"),
+                Separator(line=15 * " "),
                 Choice(name="View exported file", value=True),
                 Choice(name="Go back to tasks", value=False)
             ]
@@ -755,6 +751,8 @@ def view_folder_tasks(folder, prev='', tasks_filter=''):
             file_name = 'exported_tasks.yaml'
         if export_format == 'txt':
             file_name = 'exported_tasks.txt'
+        if export_format == 'html':
+            file_name = 'exported_tasks.html'
 
         export_file_path = os.path.join(
             config['parent_folder_name'], folder, 'exports', file_name)
@@ -763,7 +761,11 @@ def view_folder_tasks(folder, prev='', tasks_filter=''):
         if view_export == True:
             with yaspin(text=f'Opening {file_name}...', color='light_magenta') as sp:
                 time.sleep(0.3)
-            open_file(export_file_path)
+
+            if export_format == 'html':
+                webbrowser.open(export_file_path)
+            else:
+                open_file(export_file_path)
             view_folder_tasks(folder, prev='')
         else:
             view_folder_tasks(folder, prev='')
@@ -796,6 +798,96 @@ def view_folder_tasks(folder, prev='', tasks_filter=''):
             ).execute()
             view_folder_tasks(folder, '', result)
             print("Invalid selection!")
+
+
+def view_selected_tasks(tasks, selected_indices, file_path, folder):
+    clear_terminal()
+    print(file_path)
+
+    linebreak()
+
+    selected_tasks = [
+        f"{task}" for i, task in enumerate(tasks) if i in selected_indices
+    ]
+
+    console.print(
+        f"  [underline]Selected tasks [/] [grey39]{len(selected_tasks)} selected.")
+
+    linebreak()
+
+    for index, task in enumerate(selected_tasks):
+        render_task(task, index)
+
+    linebreak()
+
+    def change_status(status):
+        task_status = "[x]" if status == 'complete' else "[ ]"
+
+        try:
+            with open(file_path, 'r') as file, tempfile.NamedTemporaryFile("w", delete=False) as temp_file:
+                temp_file_name = temp_file.name
+
+                for index, line in enumerate(file):
+                    line = line.rstrip("\n")
+
+                    if index in selected_indices:
+                        temp_file.write(f"{task_status}{line[3:]} \n")
+                        print(line)
+                    else:
+                        temp_file.write(f'{line}\n')
+
+            os.replace(temp_file_name, file_path)
+        except Exception as e:
+            if 'temp_file_name' in locals():
+                os.unlink(temp_file_name)
+            print(f"An error occurred: {e}")
+
+    # menu
+
+    action_options = [
+        Choice(name="Mark as complete", value=1),
+        Choice(name="Mark as incomplete", value=2),
+        Choice(name="Add tags", value=3),
+        Choice(name="Delete Tasks", value=4),
+        Choice(name="Back to task list", value=5),
+    ]
+
+    action = inquirer.fuzzy(
+        message=' Choose action',
+        choices=action_options,
+        style=custom_syles,
+        pointer=' >',
+    ).execute()
+
+    linebreak()
+
+    if action == 1:
+        change_status('complete')
+        view_folder_tasks(folder)
+
+    if action == 2:
+        change_status('incomplete')
+        view_folder_tasks(folder)
+
+    if action == 3:
+        
+        view_folder_tasks(folder)
+
+
+def render_task(line, index):
+    status = '✔' if line[:3] == '[x]' else '☐'
+
+    styled_line = Text(f"  {index}. {status} {line[3:]}") if index > 9 else Text(
+        f"  {index}.  {status} {line[3:]}")
+
+    text = 'grey39' if line[:3] == '[x]' else 'bright_white'
+
+    styled_line.stylize(
+        text, len(str(index)) + 7, len(styled_line))
+
+    styled_line.stylize("grey39", 0, 6)
+
+    console.print(styled_line, markup=False)
 
 
 def exit_app():

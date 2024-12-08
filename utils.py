@@ -108,7 +108,7 @@ def generate_reports(reports_data, table, formats):
             console.log(f"{task} complete")
 
 
-def export_tasks(folder, tasks, format):
+def export_tasks(folder, tasks, format,delimiter=','):
     '''
         md,json,html,csv
     '''
@@ -140,11 +140,11 @@ def export_tasks(folder, tasks, format):
     if format == 'csv':
         with yaspin(text="Generating exported_tasks.csv...", color='light_magenta') as sp:
             with open(os.path.join(exports_folder_path, 'exported_tasks.csv'), 'w') as file:
-                file.write("ID,Task,Status\n")
+                file.write(f"ID{delimiter}Task{delimiter}Status\n")
                 time.sleep(0.2)
                 for index, task in enumerate(tasks):
                     file.write(
-                        f"{index+1},{task[3:].strip()},{'completed' if task[:3] == '[x]' else 'pending'}\n")
+                        f"{index+1}{delimiter}{task[3:].strip()}{delimiter}{'completed' if task[:3] == '[x]' else 'pending'}\n")
 
                 sp.write(f"Successfully generated exported_tasks.csv")
 
