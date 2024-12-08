@@ -101,7 +101,7 @@ def generate_reports(reports_data, table, formats):
                 file.write("]\n")
 
     linebreak()
-    with console.status("[bold green]Generating reports...") as status:
+    with console.status("[bold bright_magenta]Generating reports...") as status:
         while tasks:
             task = tasks.pop(0)
             time.sleep(1)
@@ -138,66 +138,54 @@ def export_tasks(folder, tasks, format,delimiter=','):
         tasks_list.append(obj)
 
     if format == 'csv':
-        with yaspin(text="Generating exported_tasks.csv...", color='light_magenta') as sp:
-            with open(os.path.join(exports_folder_path, 'exported_tasks.csv'), 'w') as file:
-                file.write(f"ID{delimiter}Task{delimiter}Status\n")
-                time.sleep(0.2)
-                for index, task in enumerate(tasks):
-                    file.write(
-                        f"{index+1}{delimiter}{task[3:].strip()}{delimiter}{'completed' if task[:3] == '[x]' else 'pending'}\n")
-
-                sp.write(f"Successfully generated exported_tasks.csv")
+        with open(os.path.join(exports_folder_path, 'exported_tasks.csv'), 'w') as file:
+            file.write(f"ID{delimiter}Task{delimiter}Status\n")
+            for index, task in enumerate(tasks):
+                file.write(
+                    f"{index+1}{delimiter}{task[3:].strip()}{delimiter}{'completed' if task[:3] == '[x]' else 'pending'}\n")
+            console.print(f" [bright_magenta]✔ Successfully generated exported_tasks.csv")
 
     if format == 'json':
-        with yaspin(text="Generating exported_tasks.json...", color='light_magenta') as sp:
-            with open(os.path.join(exports_folder_path, 'exported_tasks.json'), 'w') as file:
-                file.write("[\n")
-                for index, task in enumerate(tasks_list):
-                    if index == len(tasks_list) - 1:
-                        file.write(f"{json.dumps(task)}")
-                    else:
-                        file.write(f"{json.dumps(task)},\n")
+        with open(os.path.join(exports_folder_path, 'exported_tasks.json'), 'w') as file:
+            file.write("[\n")
+            for index, task in enumerate(tasks_list):
+                if index == len(tasks_list) - 1:
+                    file.write(f"{json.dumps(task)}")
+                else:
+                    file.write(f"{json.dumps(task)},\n")
 
-                file.write("]\n")
-                time.sleep(0.2)
-                sp.write(f"Successfully generated exported_tasks.json")
+            file.write("]\n")
+            console.print(f" [bright_magenta]✔ Successfully generated exported_tasks.json")
 
     if format == 'html':
-        with yaspin(text="Generating exported_tasks.html...", color='light_magenta') as sp:
-            with open(os.path.join(exports_folder_path, 'exported_tasks.html'), 'w') as file:
-                file.write(f"<html><body><h1>{folder} tasks</h1><main>\n")
-                for index, task in enumerate(tasks_list):
-                    file.write(
-                        f'<div><input type="checkbox" id="task-{index}" {"checked" if task["status"] == "Complete" else ""}><label for="task-{index}">{task["task"]}</label></div>'
-                    )
-                file.write("</main></body></html>\n")
-                time.sleep(0.2)
-                sp.write(f"Successfully generated exported_tasks.html")
+        with open(os.path.join(exports_folder_path, 'exported_tasks.html'), 'w') as file:
+            file.write(f"<html><body><h1>{folder} tasks</h1><main>\n")
+            for index, task in enumerate(tasks_list):
+                file.write(
+                    f'<div><input type="checkbox" id="task-{index}" {"checked" if task["status"] == "Complete" else ""}><label for="task-{index}">{task["task"]}</label></div>'
+                )
+            file.write("</main></body></html>\n")
+            console.print(f" [bright_magenta]✔ Successfully generated exported_tasks.html")
 
     if format == 'yaml':
-        with yaspin(text="Generating export_tasks.yaml...", color='light_magenta') as sp:
-            with open(os.path.join(exports_folder_path, 'exported_tasks.yaml'), 'w') as file:
-                file.write("tasks:\n")
-                for (index, task) in enumerate(tasks_list):
-                    file.write(
-                        f"- id: {index}\n"
-                        f"  task: {task['task']}\n"
-                        f"  status: {task['status']}\n"
-                    )
-
-                time.sleep(0.2)
-                sp.write(f"Successfully generated exported_tasks.yaml")
+        with open(os.path.join(exports_folder_path, 'exported_tasks.yaml'), 'w') as file:
+            file.write("tasks:\n")
+            for (index, task) in enumerate(tasks_list):
+                file.write(
+                    f"- id: {index}\n"
+                    f"  task: {task['task']}\n"
+                    f"  status: {task['status']}\n"
+                )
+            console.print(f" [bright_magenta]✔ Successfully generated exported_tasks.yaml")
 
     if format == 'md':
-        with yaspin(text='Generating exported_tasks.md...', color='light_magenta') as sp:
-            with (open(os.path.join(exports_folder_path, 'exported_tasks.md'), 'w')) as file:
-                file.write("## Tasks \n")
+        with (open(os.path.join(exports_folder_path, 'exported_tasks.md'), 'w')) as file:
+            file.write("## Tasks \n")
 
-                for (index, line) in enumerate(tasks):
-                    file.write(f'- {line}. \n')
+            for (index, line) in enumerate(tasks):
+                file.write(f'- {line}. \n')
 
-                time.sleep(0.2)
-                sp.write(f"Successfully generated exported_tasks.md")
+            console.print(f" [bright_magenta]✔ Successfully generated exported_tasks.csv")
 
 
 def open_file(exports_folder_path):

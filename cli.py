@@ -223,10 +223,9 @@ def view_reports():
     linebreak()
 
     reports_menu_options = [
-        Separator(line=15*"-"),
-        Choice(name='🏠 Return to the main menu', value=0),
-        Choice(name='📤 Export reports', value=1),
-        Choice(name="🚫 Exit application", value=2)
+        Choice(name=' Return to the main menu', value=0),
+        Choice(name=' Export reports', value=1),
+        Choice(name=" Exit application", value=2)
     ]
 
     selected_option = inquirer.select(
@@ -240,7 +239,6 @@ def view_reports():
 
     if selected_option == 1:
         format_options = [
-            Separator(line=15*"-"),
             Choice(name='CSV', value='csv'),
             Choice(name='JSON', value='json'),
             Choice(name='HTML', value='html'),
@@ -263,11 +261,10 @@ def view_reports():
         generate_reports(reports_data, reports_table, selected_formats)
 
         report_menu_options = [
-            Separator(line=15*"-"),
-            Choice(name="📊 Go back to reports", value=0),
-            Choice(name="🏠 Return to the main menu", value=1),
-            Choice(name="🌐 Open report in browser", value=2),
-            Choice(name="🚫 Exit application", value=3),
+            Choice(name="Go back to reports", value=0),
+            Choice(name="Return to the main menu", value=1),
+            Choice(name="Open report in browser", value=2),
+            Choice(name="Exit application", value=3),
         ]
 
         linebreak()
@@ -514,60 +511,26 @@ def view_folder_tasks(folder, prev='', tasks_filter=''):
                 line = line.rstrip("\n")
 
                 render_task(line, index)
-
-    menu_options = [
-        Separator(line=15 * " "),
-        Choice(name='Select tasks', value=0),
-        Separator(line=15 * ""),
-        Choice(name='Filter tasks', value=10),
-        Choice(name='Import/ Export tasks', value=9),
-        Separator(line=15 * ""),
-        Choice(name='Back to projects', value=4),
-        Choice(name='Back to main menu', value=5),
-        Choice(name='Exit application', value=6)
-    ]
-
     linebreak()
 
-    def change_status(status):
-        indices = inquirer.text(
-            message='Enter index (0 to cancel)',
-            instruction='use comma-separated list to delete multiple items',
-            style=custom_syles,
+    menu_options = [
+        Choice(name='Select tasks', value=0),
+        Choice(name='Add task', value=1),
+        Choice(name='Filter tasks', value=2),
+        Choice(name='Edit task', value=3),
+        Choice(name='Import/ Export tasks', value=4),
+        Choice(name='Back to projects', value=5),
+        Choice(name='Back to main menu', value=6),
+        Choice(name='Exit application', value=7)
+    ]
 
-        ).execute()
-
-        task_status = "[x]" if status == 'complete' else "[ ]"
-
-        selected_indices = [int(i.strip())
-                            for i in indices.split(",") if i.strip().isdigit()]
-
-        try:
-            with open(file_path, 'r') as file, tempfile.NamedTemporaryFile("w", delete=False) as temp_file:
-                temp_file_name = temp_file.name
-                for index, line in enumerate(file):
-
-                    if index + 1 in selected_indices:
-                        temp_file.write(f"{task_status}{line[3:]}")
-                    else:
-                        temp_file.write(f'{line}')
-
-            os.replace(temp_file_name, file_path)
-        except Exception as e:
-            if 'temp_file_name' in locals():
-                os.unlink(temp_file_name)
-            print(f"An error occured: {e}")
-        view_folder_tasks(folder, prev='mark complete')
-
-    option = inquirer.rawlist(
+    option = inquirer.fuzzy(
         message='Select option',
         choices=menu_options,
         default=0,
         style=custom_syles,
         pointer='>'
     ).execute()
-
-    linebreak()
 
     if option == 0:
         selected_tasks = inquirer.text(
@@ -582,196 +545,37 @@ def view_folder_tasks(folder, prev='', tasks_filter=''):
             task_list, selected_tasks_indices, file_path, folder)
 
     # add todo
-    # if option == 0:
-    #     new_todo = inquirer.text(
-    #         message='Enter task title',
-    #         style=custom_syles
-    #     ).execute()
-
-    #     todo_status = inquirer.select(
-    #         message='Select task status',
-    #         style=custom_syles,
-    #         default="Incomplete",
-    #         choices=[
-    #             Choice(name='Complete', value='Complete'),
-    #             Choice(name='Incomplete', value='Incomplete'),
-    #         ]
-    #     ).execute()
-
-    #     status = '[ ]' if todo_status == 'Incomplete' else '[x]'
-
-    #     try:
-    #         with yaspin(text='Creating task...', color='light_magenta') as sp:
-    #             time.sleep(0.2)
-    #             with open(file_path, 'a') as file:
-    #                 file.write(f'{status} {new_todo}\n')
-    #             sp.write("Task added successfully")
-    #     except Exception as e:
-    #         print(e)
-
-    #     view_folder_tasks(folder)
-    # delete todos
     if option == 1:
-
-        task_indices = inquirer.text(
-            message='Enter index (0 to cancel)',
-            instruction='use comma-separated list to delete multiple items',
-            style=custom_syles,
-
-        ).execute()
-
-        task_indices = [int(i.strip())
-                        for i in task_indices.split(",") if i.strip().isdigit()]
-
-        try:
-            with yaspin(text='Deleting task...', color="light_magenta") as sp:
-                with open(file_path, 'r') as file, tempfile.NamedTemporaryFile("w", delete=False) as temp_file:
-                    temp_file_name = temp_file.name
-                    for index, line in enumerate(file):
-                        if index + 1 not in task_indices:
-                            temp_file.write(line)
-                        if index + 1 in task_indices:
-                            sp.write(f'Deleted {line[3:]}')
-
-            os.replace(temp_file_name, file_path)
-
-        except Exception as e:
-            if 'temp_file_name' in locals():
-                os.unlink(temp_file_name)
-            print(f"An error occured: {e}")
-        view_folder_tasks(folder, prev='delete')
-    # mark todo complete
-    if option == 2:
-        change_status("complete")
-    # mark todo incomplete
-    if option == 7:
-        change_status("incomplete")
-    # edit task
-    if option == 3:
-
-        task_index = inquirer.number(
-            message="Enter task index",
-            min_allowed=1,
-            max_allowed=last_index,
-            validate=EmptyInputValidator(),
+        new_todo = inquirer.text(
+            message='Enter task title',
             style=custom_syles
         ).execute()
 
-        selected_task = task_list[int(task_index) - 1]
-
-        edit_task = inquirer.text(
-            message='Edit task',
+        todo_status = inquirer.select(
+            message='Select task status',
             style=custom_syles,
-            default=selected_task
-        ).execute()
-
-        confirm_edit = inquirer.confirm(
-            message='Save changes',
-            default=True,
-            style=custom_syles
-        ).execute()
-
-        if confirm_edit:
-            try:
-                with open(file_path, 'r') as edit_file, tempfile.NamedTemporaryFile('w', delete=False) as edit_temp_file:
-                    edit_temp_name = edit_temp_file.name
-                    for index, line in enumerate(edit_file):
-                        line = line.rstrip("\n")
-                        if index == (int(task_index) - 1):
-                            edit_temp_file.write(f"{edit_task}\n")
-                        else:
-                            edit_temp_file.write(f"{line}\n")
-
-                os.replace(edit_temp_name, file_path)
-            except Exception as e:
-                if 'edit_temp_name' in locals():
-                    os.unlink(edit_temp_name)
-                print(f"An error occured: {e}")
-            view_folder_tasks(folder)
-        else:
-            view_folder_tasks(folder)
-    # back to projects
-    if option == 4:
-        view_projects()
-    # main menu
-    if option == 5:
-        main_menu()
-    # exit
-    if option == 6:
-        exit_app()
-    # export tasks
-    if option == 8:
-        export_format_options = [
-            Separator(line=15 * " "),
-            Choice(name="Markdown (.md)", value="md"),
-            Choice(name="JSON (.json)", value="json"),
-            Choice(name="CSV (.csv)", value="csv"),
-            Choice(name="YAML (.yaml)", value="yaml"),
-            Choice(name="HTML (.html)", value="html")
-        ]
-
-        export_format = inquirer.select(
-            message="Select format to export tasks",
-            choices=export_format_options,
-            default="txt",
-            style=custom_syles,
-            pointer=">"
-        ).execute()
-
-        if export_format == 'csv':
-            delimiter = inquirer.text(
-                message="Enter delimiter",
-                default=",",
-                style=custom_syles
-            ).execute()
-
-        export_tasks(folder, task_list, export_format, delimiter)
-
-        linebreak()
-
-        view_export = inquirer.select(
-            message="Select option",
-            default=False,
-            style=custom_syles,
+            default="Incomplete",
             choices=[
-                Separator(line=15 * " "),
-                Choice(name="View exported file", value=True),
-                Choice(name="Go back to tasks", value=False)
+                Choice(name='Complete', value='Complete'),
+                Choice(name='Incomplete', value='Incomplete'),
             ]
         ).execute()
 
-        file_name = ''
+        status = '[ ]' if todo_status == 'Incomplete' else '[x]'
 
-        if export_format == 'md':
-            file_name = 'exported_tasks.md'
-        if export_format == 'json':
-            file_name = 'exported_tasks.json'
-        if export_format == 'csv':
-            file_name = 'exported_tasks.csv'
-        if export_format == 'yaml':
-            file_name = 'exported_tasks.yaml'
-        if export_format == 'txt':
-            file_name = 'exported_tasks.txt'
-        if export_format == 'html':
-            file_name = 'exported_tasks.html'
+        try:
+            with yaspin(text='Creating task...', color='light_magenta') as sp:
+                time.sleep(0.2)
+                with open(file_path, 'a') as file:
+                    file.write(f'{status} {new_todo}\n')
+                sp.write("Task added successfully")
+        except Exception as e:
+            print(e)
 
-        export_file_path = os.path.join(
-            config['parent_folder_name'], folder, 'exports', file_name)
+        view_folder_tasks(folder)
 
-        linebreak()
-        if view_export == True:
-            with yaspin(text=f'Opening {file_name}...', color='light_magenta') as sp:
-                time.sleep(0.3)
-
-            if export_format == 'html':
-                webbrowser.open(export_file_path)
-            else:
-                open_file(export_file_path)
-            view_folder_tasks(folder, prev='')
-        else:
-            view_folder_tasks(folder, prev='')
-
-    if option == 10:
+    #    filter tasks
+    if option == 2:
 
         filter_categories = [
             {"key": "s", "value": "status", "name": "Filter by Status"},
@@ -799,6 +603,158 @@ def view_folder_tasks(folder, prev='', tasks_filter=''):
             ).execute()
             view_folder_tasks(folder, '', result)
             print("Invalid selection!")
+
+    # edit task
+    if option == 3:
+        task_index = inquirer.number(
+            message="Enter task index",
+            min_allowed=1,
+            max_allowed=last_index,
+            validate=EmptyInputValidator(),
+            style=custom_syles
+        ).execute()
+
+        selected_task = task_list[int(task_index) - 1].rstrip()
+
+        edit_task = inquirer.text(
+            message='Edit task',
+            style=custom_syles,
+            default=selected_task[3:]
+        ).execute()
+
+        confirm_edit = inquirer.confirm(
+            message='Save changes',
+            default=True,
+            style=custom_syles
+        ).execute()
+
+        task_status = selected_task[:3]
+
+        if confirm_edit:
+            try:
+                with open(file_path, 'r') as edit_file, tempfile.NamedTemporaryFile('w', delete=False) as edit_temp_file:
+                    edit_temp_name = edit_temp_file.name
+
+                    for index, line in enumerate(edit_file):
+                        line = line.rstrip("\n")
+                        if index == (int(task_index) - 1):
+                            edit_temp_file.write(f"{task_status}{edit_task}\n")
+                        else:
+                            edit_temp_file.write(f"{line}\n")
+
+                os.replace(edit_temp_name, file_path)
+            except Exception as e:
+                if 'edit_temp_name' in locals():
+                    os.unlink(edit_temp_name)
+                print(f"An error occured: {e}")
+            view_folder_tasks(folder)
+        else:
+            view_folder_tasks(folder)
+
+    if option == 4:
+
+        selection_options = [
+            Choice(name='Import tasks from project', value='import'),
+            Choice(name='Export tasks', value='export')
+        ]
+
+        export_or_import = inquirer.select(
+            message="Select option",
+            choices=selection_options,
+            default='import',
+            style=custom_syles,
+            pointer='>'
+        ).execute()
+
+      
+        if export_or_import == 'export':
+            export_format_options = [
+                Choice(name="Markdown (.md)", value="md"),
+                Choice(name="JSON (.json)", value="json"),
+                Choice(name="CSV (.csv)", value="csv"),
+                Choice(name="YAML (.yaml)", value="yaml"),
+                Choice(name="HTML (.html)", value="html")
+            ]
+            
+
+            export_format = inquirer.select(
+                message="Select format to export tasks",
+                choices=export_format_options,
+                default="txt",
+                style=custom_syles,
+                pointer=">"
+            ).execute()
+
+            delimiter = ','
+
+            if export_format == 'csv':
+
+                select_delimeter = inquirer.text(
+                    message="Enter delimiter",
+                    default=",",
+                    style=custom_syles
+                ).execute()
+
+                delimiter = select_delimeter
+
+            export_tasks(folder, task_list, export_format, delimiter)
+
+            linebreak()
+
+            view_export = inquirer.select(
+                message="Select option",
+                default=False,
+                style=custom_syles,
+                choices=[
+                    Choice(name="View exported file", value=True),
+                    Choice(name="Go back to tasks", value=False)
+                ]
+            ).execute()
+
+            file_name = ''
+
+            if export_format == 'md':
+                file_name = 'exported_tasks.md'
+            if export_format == 'json':
+                file_name = 'exported_tasks.json'
+            if export_format == 'csv':
+                file_name = 'exported_tasks.csv'
+            if export_format == 'yaml':
+                file_name = 'exported_tasks.yaml'
+            if export_format == 'txt':
+                file_name = 'exported_tasks.txt'
+            if export_format == 'html':
+                file_name = 'exported_tasks.html'
+
+            export_file_path = os.path.join(
+                config['parent_folder_name'], folder, 'exports', file_name)
+
+            linebreak()
+            if view_export == True:
+                with yaspin(text=f'Opening {file_name}...', color='light_magenta') as sp:
+                    time.sleep(0.3)
+
+                if export_format == 'html':
+                    webbrowser.open(export_file_path)
+                else:
+                    open_file(export_file_path)
+                view_folder_tasks(folder, prev='')
+            else:
+                view_folder_tasks(folder, prev='')
+
+        if export_or_import == 'import':
+            view_folder_tasks(folder)
+
+    # back to projects
+    if option == 5:
+        view_projects()
+    # main menu
+    if option == 6:
+        main_menu()
+    # exit
+    if option == 7:
+        exit_app()
+    # export tasks
 
 
 def view_selected_tasks(tasks, selected_indices, file_path, folder):
@@ -877,7 +833,6 @@ def view_selected_tasks(tasks, selected_indices, file_path, folder):
 
         added_tags = tags.split(',')
 
-        
         try:
             with open(file_path, 'r') as file, tempfile.NamedTemporaryFile("w", delete=False) as temp_file:
                 temp_file_name = temp_file.name
@@ -886,7 +841,8 @@ def view_selected_tasks(tasks, selected_indices, file_path, folder):
                     line = line.rstrip("\n")
 
                     if index in selected_indices:
-                        temp_file.write(f"{line.rstrip()} {' '.join([f'@{tag.strip()}' for tag in added_tags])}\n")
+                        temp_file.write(
+                            f"{line.rstrip()} {' '.join([f'@{tag.strip()}' for tag in added_tags])}\n")
                         print(line)
                     else:
                         temp_file.write(f'{line}\n')
@@ -899,14 +855,32 @@ def view_selected_tasks(tasks, selected_indices, file_path, folder):
 
         view_folder_tasks(folder)
 
+    if action == 4:
+        try:
+            with yaspin(text='Deleting task...', color="light_magenta") as sp:
+                with open(file_path, 'r') as file, tempfile.NamedTemporaryFile("w", delete=False) as temp_file:
+                    temp_file_name = temp_file.name
+                    for index, line in enumerate(file):
+                        if index + 1 not in selected_indices:
+                            temp_file.write(line)
+                        if index + 1 in selected_indices:
+                            sp.write(f'Deleted {line[3:]}')
+
+            os.replace(temp_file_name, file_path)
+
+        except Exception as e:
+            if 'temp_file_name' in locals():
+                os.unlink(temp_file_name)
+            print(f"An error occured: {e}")
+
+        view_folder_tasks(folder, prev='delete')
+
 
 def render_task(line, index):
     status = '✔' if line[:3] == '[x]' else '☐'
 
     styled_line = Text(f"  {index}. {status} {line[3:]}") if index > 9 else Text(
         f"  {index}.  {status} {line[3:]}")
-    
-
 
     text = 'grey39' if line[:3] == '[x]' else 'bright_white'
 
@@ -916,7 +890,7 @@ def render_task(line, index):
     styled_line.stylize("grey39", 0, 6)
 
     for match in re.finditer(r'@(\w+)', line):
-        start,end = match.span()
+        start, end = match.span()
         styled_line.stylize("yellow", start + 5, end + 5)
 
     console.print(styled_line, markup=False)
