@@ -615,7 +615,7 @@ def view_folder_tasks(folder, prev='', tasks_filter=''):
             tag_dict = {
                 "key" : f'{index}',
                 "value": tag,
-                "name" : tag[1:]
+                "name" : tag
             }
 
             tag_filters.append(tag_dict)

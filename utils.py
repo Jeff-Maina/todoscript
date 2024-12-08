@@ -108,7 +108,7 @@ def generate_reports(reports_data, table, formats):
             console.log(f"{task} complete")
 
 
-def export_tasks(folder, tasks, format,delimiter=','):
+def export_tasks(folder, tasks, format, delimiter=','):
     '''
         md,json,html,csv
     '''
@@ -128,27 +128,41 @@ def export_tasks(folder, tasks, format,delimiter=','):
 
     tasks_list = []
 
+    def get_tags(task):
+        return list(set(f'{tag[1:]}' for tag in task.split(" ") if tag.startswith("@")))
+
+    def get_task_without_tags(task):
+        return ' '.join(word for word in task.split(' ') if not word.startswith('@'))
+
     for index, task in enumerate(tasks):
         obj = {
             'id': index,
-            'task': task[3:].strip(),
-            'status': 'Complete' if task[:3] == '[x]' else "Incomplete"
+            'task': get_task_without_tags(task),
+            'status': 'Complete' if task[:3] == '[x]' else "Incomplete",
+            'tags': get_tags(task)
         }
 
         tasks_list.append(obj)
 
     if format == 'csv':
         with open(os.path.join(exports_folder_path, 'exported_tasks.csv'), 'w') as file:
-            file.write(f"ID{delimiter}Task{delimiter}Status\n")
+            file.write(f"ID{delimiter}Task{delimiter}Tags{delimiter}Status\n")
             for index, task in enumerate(tasks):
+                tags = get_tags(task)
+                line_without_tags = get_task_without_tags(task)
+
                 file.write(
-                    f"{index+1}{delimiter}{task[3:].strip()}{delimiter}{'completed' if task[:3] == '[x]' else 'pending'}\n")
-            console.print(f" [bright_magenta]✔ Successfully generated exported_tasks.csv")
+                    f'{index+1}{delimiter}{line_without_tags}{delimiter}{" | ".join(tags)}{delimiter}{"completed" if task[:3] == "[x]" else "pending"}\n')
+            console.print(
+                f" [bright_magenta]✔ Successfully generated exported_tasks.csv")
 
     if format == 'json':
         with open(os.path.join(exports_folder_path, 'exported_tasks.json'), 'w') as file:
             file.write("[\n")
             for index, task in enumerate(tasks_list):
+                tags = get_tags(task)
+                line_without_tags = get_task_without_tags(task)
+
                 if index == len(tasks_list) - 1:
                     file.write(f"{json.dumps(task)}")
                 else:
