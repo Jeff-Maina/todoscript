@@ -23,7 +23,7 @@ import re
 
 from main import configure, create_tasks, get_folders
 from utils import open_file, has_been_configured, export_tasks, clear_terminal, linebreak, get_configuration, generate_reports
-from constants import file_formats, themes, menu_options
+from constants import file_formats, themes, main_menu_options
 custom_syles = get_style(
     {
         "questionmark": "#EB5B00 bold",
@@ -135,10 +135,10 @@ def main_menu():
     console.print("[red bold] Main menu")
     linebreak()
 
-    menu_option = inquirer.select(
-        message="Select an option",
-        choices=menu_options,
-        pointer=">",
+    menu_option = inquirer.fuzzy(
+        message="Choose action",
+        choices=main_menu_options,
+        pointer=" >",
         style=custom_syles,
         default=0
     ).execute()
@@ -414,10 +414,9 @@ def generate_tasks():
     linebreak()
 
     menu_options = [
-        Separator(line=15 * " "),
-        Choice(name='📂 View projects', value=0),
-        Choice(name="🏠 Return to the main menu", value=1),
-        Choice(name='🚫 Exit application', value=2)
+        Choice(name='View projects', value=0),
+        Choice(name="Return to the main menu", value=1),
+        Choice(name='Exit application', value=2)
     ]
 
     option = inquirer.rawlist(
@@ -472,6 +471,7 @@ def view_folder_tasks(folder, prev='', tasks_filter=''):
     pending_tasks = 0
 
     task_list = []
+    all_tags = []
 
     root_directory = get_configuration()['parent_folder_name']
 
@@ -510,7 +510,26 @@ def view_folder_tasks(folder, prev='', tasks_filter=''):
                 last_index += 1
                 line = line.rstrip("\n")
 
-                render_task(line, index)
+                tags = [x for x in line.split(" ") if x.startswith("@")]
+
+                for tag in tags:
+                    all_tags.append(tag)
+
+                status = "completed" if line[:3] == "[x]" else "pending"
+
+                if tasks_filter == '' or tasks_filter == 'all':
+                    render_task(line, index)
+                    
+                
+                if tasks_filter and tasks_filter == status:
+                    render_task(line, index)
+
+                if tasks_filter.startswith("@") and tasks_filter in line.split():
+                    render_task(line, index)
+              
+
+
+                
     linebreak()
 
     menu_options = [
@@ -579,7 +598,7 @@ def view_folder_tasks(folder, prev='', tasks_filter=''):
 
         filter_categories = [
             {"key": "s", "value": "status", "name": "Filter by Status"},
-            {"key": "d", "value": "date", "name": "Filter by Date"},
+            {"key": "t", "value": "tag", "name": "Filter by Tags"},
             {"key": "p", "value": "priority", "name": "Filter by Priority"},
         ]
 
@@ -588,6 +607,21 @@ def view_folder_tasks(folder, prev='', tasks_filter=''):
             {"key": "c", "value": "completed", "name": "Completed tasks"},
             {"key": "p", "value": "pending", "name": "Pending tasks"},
         ]
+
+
+        tag_filters = []
+
+        for index,tag in enumerate(list(dict.fromkeys(all_tags))):
+            tag_dict = {
+                "key" : f'{index}',
+                "value": tag,
+                "name" : tag[1:]
+            }
+
+            tag_filters.append(tag_dict)
+
+        
+        
 
         filter_type = inquirer.expand(
             message="How would you like to filter?",
@@ -600,10 +634,21 @@ def view_folder_tasks(folder, prev='', tasks_filter=''):
                 message="Select status filter:",
                 instruction='press h to view all choices',
                 choices=status_filters,
+                pointer='>'
             ).execute()
+
             view_folder_tasks(folder, '', result)
             print("Invalid selection!")
 
+        if filter_type == 'tag':
+            result = inquirer.expand(
+                message="Select tag filter:",
+                instruction='press h to view all choices',
+                choices=tag_filters,
+            ).execute()
+
+            view_folder_tasks(folder, '', result)
+            print("Invalid selection!")
     # edit task
     if option == 3:
         task_index = inquirer.number(
